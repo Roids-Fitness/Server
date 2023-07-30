@@ -55,5 +55,12 @@ const updateClass = async (request, response) => {
 	}
 }
 
+const deleteAllClasses = async (request, response) => {
+	await Class.deleteMany({});
+	response.json({
+		message: "All classes deleted"
+	});
+};
 
-module.exports = {getClasses, getClassByID, getClassTimetable, createClass, updateClass};
+
+module.exports = {getClasses, getClassByID, getClassTimetable, createClass, updateClass, deleteAllClasses};
