@@ -4,16 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "jest",
-    "test-cc": "jest --coverage"
+    "start": "NODE_ENV=production node src/index.js",
+    "dev": "NODE_ENV=development nodemon src/index.js",
+    "test": "NODE_ENV=test jest",
+    "test-cc": "NODE_ENV=test jest --coverage"
   },
   "keywords": [],
   "author": "Tony Le Huynh, Johnson Wang",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.0",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "mongoose": "^7.4.0"
   },
