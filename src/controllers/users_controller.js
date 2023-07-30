@@ -28,4 +28,20 @@ const signup = async (request, response) => {
 };
 
 
-module.exports = {getUsers, signup};
+const login = async (request, response) => {
+	const user = await User.findOne({email: request.body.email});
+	
+	if (user && user.password === request.body.password){
+		response.json({
+			email: user.email,
+			message: "Login success"
+		});
+	} else {
+		response.json({
+			error: "Authentication failed"
+		});
+	}
+};
+
+
+module.exports = {getUsers, signup, login};
