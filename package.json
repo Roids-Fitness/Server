@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest"
+    "test": "jest",
+	"test-cc": "jest --coverage"
   },
   "keywords": [],
   "author": "Tony Le Huynh, Johnson Wang",
