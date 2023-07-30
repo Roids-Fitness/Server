@@ -62,5 +62,17 @@ const deleteAllClasses = async (request, response) => {
 	});
 };
 
+const deleteClass = async (request, response) => {
+	classToDelete = await Class.findByIdAndDelete(request.params.id)
+								.catch(error => {
+									console.log("Error while accessing data:\n" + error);
+								});
+	if (classToDelete) {
+		response.json("Class deleted");
+	} else {
+		response.json({error: "Class ID not found"});
+	}
+};
 
-module.exports = {getClasses, getClassByID, getClassTimetable, createClass, updateClass, deleteAllClasses};
+
+module.exports = {getClasses, getClassByID, getClassTimetable, createClass, updateClass, deleteAllClasses, deleteClass};
