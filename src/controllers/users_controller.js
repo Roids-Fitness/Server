@@ -7,5 +7,25 @@ const getUsers = (request, response) => {
 	});
 };
 
+const signup = async (request, response) => {
+	let newUser = new User({
+		email: request.body.email,
+		password: request.body.password,
+		phone: request.body.phone,
+		classes: []
+	});
 
-module.exports = {getUsers};
+	await newUser.save()
+				.catch(error => {
+					console.log(error.errors);
+				});
+	
+	response.json({
+		email: newUser.email,
+		password: newUser.password,
+		phone: newUser.phone,
+	});
+};
+
+
+module.exports = {getUsers, signup};
