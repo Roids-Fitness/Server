@@ -13,6 +13,9 @@ app.get("/", (request, response) => {
 	});
 });
 
+const classesRouter = require('./routes/classes_routes');
+app.use("/classes", classesRouter);
+
 module.exports = {
 	app, PORT
 };
