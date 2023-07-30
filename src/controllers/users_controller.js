@@ -44,4 +44,30 @@ const login = async (request, response) => {
 };
 
 
-module.exports = {getUsers, signup, login};
+const updateUser = async (request, response) => {
+
+	let updatedUser = await User.findByIdAndUpdate(request.params.id, request.body, {new: true})
+								.catch(error => {
+									console.log("Error while accessing data:\n" + error);
+								});
+	if (updatedUser) {
+		response.send(updatedUser);
+	} else {
+		response.json({error: "User ID not found"});
+		response.status(404);
+	}
+};
+
+const deleteUser = async (request, response) => {
+	userToDelete = await User.findByIdAndDelete(request.params.id)
+								.catch(error => {
+									console.log("Error while accessing data:\n" + error);
+								});
+	if (userToDelete) {
+		response.json("User deleted");
+	} else {
+		response.json({error: "User ID not found"});
+	}
+};
+
+module.exports = {getUsers, signup, login, updateUser, deleteUser};
