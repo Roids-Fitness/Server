@@ -53,7 +53,7 @@ const updateClass = async (request, response) => {
 		response.json({error: "Class ID not found"});
 		response.status(404);
 	}
-}
+};
 
 const deleteAllClasses = async (request, response) => {
 	await Class.deleteMany({});
