@@ -7,6 +7,22 @@ const getClasses = (request, response) => {
 	});
 };
 
+
+const getClassByID = async (request, response) => {
+    try {
+        let foundClass = await Class.findById(request.params.id);
+        if (foundClass) {
+            response.json(foundClass);
+        } else {
+            response.json({ error: "Class ID not found" });
+			response.status(404);
+        }
+    } catch (error) {
+        console.log("Error while accessing data:\n" + error);
+        response.status(404);
+    }
+};
+
 const createClass = async  (request, response) => {
 
 	let newClass = new Class({
@@ -21,6 +37,10 @@ const createClass = async  (request, response) => {
 	response.json(newClass);
 }
 
+const updateClass = async (request, response) => {
+
+	let updatedClass = await Class.findByIdAndUpdate()
+}
 
 
-module.exports = {getClasses, createClass};
+module.exports = {getClasses, getClassByID, createClass};
