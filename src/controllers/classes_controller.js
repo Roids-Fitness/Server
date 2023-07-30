@@ -43,8 +43,17 @@ const createClass = async  (request, response) => {
 
 const updateClass = async (request, response) => {
 
-	let updatedClass = await Class.findByIdAndUpdate()
+	let updatedClass = await Class.findByIdAndUpdate(request.params.id, request.body, {new: true})
+								.catch(error => {
+									console.log("Error while accessing data:\n" + error);
+								});
+	if (updateClass) {
+		response.send(updatedClass);
+	} else {
+		response.json({error: "Class ID not found"});
+		response.status(404);
+	}
 }
 
 
-module.exports = {getClasses, getClassByID, getClassTimetable, createClass};
+module.exports = {getClasses, getClassByID, getClassTimetable, createClass, updateClass};
