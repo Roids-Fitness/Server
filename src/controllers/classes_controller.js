@@ -6,7 +6,11 @@ const getClasses = (request, response) => {
 		message: "List of classes goes here"
 	});
 };
-
+const getClassTimetable = (request, response) => {
+	response.json({
+		message: "Class timetable page"
+	});
+}
 
 const getClassByID = async (request, response) => {
     try {
@@ -43,4 +47,4 @@ const updateClass = async (request, response) => {
 }
 
 
-module.exports = {getClasses, getClassByID, createClass};
+module.exports = {getClasses, getClassByID, getClassTimetable, createClass};
