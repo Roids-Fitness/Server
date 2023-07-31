@@ -8,6 +8,9 @@ const getClasses = async (request, response) => {
 	if ('trainer' in request.query) {
 		const trainerName = request.query.trainer;
 		classes = await Class.find({ trainer: trainerName });
+	} else if ('date' in request.query) {
+		const date = new Date(request.query.date);
+		classes = await Class.find({ date: date });
 	} else {
 		classes = await Class.find();
 	}
