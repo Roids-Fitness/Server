@@ -1,11 +1,29 @@
 const Class = require('../models/class');
+const User = require('../models/user');
 
 
-const getClasses = (request, response) => {
-	response.json({
-		message: "List of classes goes here"
-	});
+const getClasses = async (request, response) => {
+	let classes;
+
+	// Check if 'trainer' query paramter exists in the request, then search by trainer
+	if ('trainer' in request.query) {
+		const trainerName = request.query.trainer;
+		classes = await Class.find({ trainer: trainerName });
+	} else if ('date' in request.query) {
+		const date = new Date(request.query.date);
+		classes = await Class.find({ date: date });
+	} else {
+		classes = await Class.find();
+	}
+
+	response.send(classes);
 };
+
+const getMyClasses = async (request, response) => {
+	let user = await User.findOne({email: request.body.email}).populate('classes');
+	request.send(user.classes);
+}
+
 const getClassTimetable = (request, response) => {
 	response.json({
 		message: "Class timetable page"
@@ -55,6 +73,22 @@ const updateClass = async (request, response) => {
 	}
 };
 
+
+const saveClassToUser = async (request, response) => {
+	let userId = request.user.user_id;
+	let classId = request.params.classId;
+
+	try {
+		await User.findByIdAndUpdate(userId, { $addToSet: { savedClasses: classId } });
+		response.status(201)
+		.json({ message: "Class saved to user profile successfully."});
+	} catch (error) {
+		response.status(500)
+		.json({ error: "Failed to save class."});
+	}
+};
+
+
 const deleteAllClasses = async (request, response) => {
 	await Class.deleteMany({});
 	response.json({
@@ -75,4 +109,4 @@ const deleteClass = async (request, response) => {
 };
 
 
-module.exports = {getClasses, getClassByID, getClassTimetable, createClass, updateClass, deleteAllClasses, deleteClass};
+module.exports = {getClasses, getMyClasses, getClassByID, getClassTimetable, createClass, updateClass, saveClassToUser, deleteAllClasses, deleteClass};

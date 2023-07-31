@@ -11,7 +11,8 @@ const UserSchema = mongoose.Schema({
 		required: true
 	},
 	phone: String,
-	classes: [{type: mongoose.Types.ObjectId, ref: 'Class'}]
+	isAdmin: Boolean,
+	savedClasses: [{type: mongoose.Types.ObjectId, ref: 'Class'}]
 });
 
 const User = mongoose.model('User', UserSchema);
