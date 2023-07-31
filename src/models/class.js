@@ -5,7 +5,7 @@ const ClassSchema = mongoose.Schema({
 	date: Date,
 	trainer: String,
 	description: String,
-	participantList: [String]
+	participantList: [{type: mongoose.Types.ObjectId, ref: 'User'}]
 })
 
 const Class = mongoose.model('Class', ClassSchema);
