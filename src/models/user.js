@@ -11,6 +11,7 @@ const UserSchema = mongoose.Schema({
 		required: true
 	},
 	phone: String,
+	isAdmin: Boolean,
 	classes: [{type: mongoose.Types.ObjectId, ref: 'Class'}]
 });
 
