@@ -1,11 +1,20 @@
 const Class = require('../models/class');
 
 
-const getClasses = (request, response) => {
-	response.json({
-		message: "List of classes goes here"
-	});
+const getClasses = async (request, response) => {
+	let classes;
+
+	// Check if 'trainer' query paramter exists in the request, then search by trainer
+	if ('trainer' in request.query) {
+		const trainerName = request.query.trainer;
+		classes = await Class.find({ trainer: trainerName });
+	} else {
+		classes = await Class.find();
+	}
+
+	response.send(classes);
 };
+
 const getClassTimetable = (request, response) => {
 	response.json({
 		message: "Class timetable page"
