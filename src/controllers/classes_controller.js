@@ -73,6 +73,22 @@ const updateClass = async (request, response) => {
 	}
 };
 
+
+const saveClassToUser = async (request, response) => {
+	let userId = request.user.user_id;
+	let classId = request.params.classId;
+
+	try {
+		await User.findByIdAndUpdate(userId, { $addToSet: { savedClasses: classId } });
+		response.status(201)
+		.json({ message: "Class saved to user profile successfully."});
+	} catch (error) {
+		response.status(500)
+		.json({ error: "Failed to save class."});
+	}
+};
+
+
 const deleteAllClasses = async (request, response) => {
 	await Class.deleteMany({});
 	response.json({
@@ -93,4 +109,4 @@ const deleteClass = async (request, response) => {
 };
 
 
-module.exports = {getClasses, getMyClasses, getClassByID, getClassTimetable, createClass, updateClass, deleteAllClasses, deleteClass};
+module.exports = {getClasses, getMyClasses, getClassByID, getClassTimetable, createClass, updateClass, saveClassToUser, deleteAllClasses, deleteClass};
