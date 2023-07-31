@@ -1,4 +1,5 @@
 const Class = require('../models/class');
+const User = require('../models/user');
 
 
 const getClasses = async (request, response) => {
@@ -17,6 +18,11 @@ const getClasses = async (request, response) => {
 
 	response.send(classes);
 };
+
+const getMyClasses = async (request, response) => {
+	let user = await User.findOne({email: request.body.email}).populate('classes');
+	request.send(user.classes);
+}
 
 const getClassTimetable = (request, response) => {
 	response.json({
@@ -87,4 +93,4 @@ const deleteClass = async (request, response) => {
 };
 
 
-module.exports = {getClasses, getClassByID, getClassTimetable, createClass, updateClass, deleteAllClasses, deleteClass};
+module.exports = {getClasses, getMyClasses, getClassByID, getClassTimetable, createClass, updateClass, deleteAllClasses, deleteClass};
