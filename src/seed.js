@@ -8,16 +8,28 @@ const Class = require('./models/class');
 const databaseURL = "mongodb://localhost:27017/roids_fitness_db";
 
 // Connect to the database
-mongoose.connect(databaseURL)
-  .then(() => {
-    console.log("Connected to database!");
-    // Call seeding functions
-    seedUsers();
-    seedClasses();
-  })
-  .catch((error) => {
-    console.error("Could not connect to database:\n", error);
-  });
+async function seedDatabase() {
+	try {
+	  await mongoose.connect(databaseURL);
+	  console.log("Connected to database!");
+  
+	  // Call seeding functions
+	  await seedUsers();
+	  await seedClasses();
+	  await addSavedClassesToTestUser();
+	  await addParticipantListToClass();
+  
+	  // Close the database connection
+	  await mongoose.connection.close();
+	  console.log("Database seeding completed.");
+	} catch (error) {
+	  console.error("Error seeding database:", error);
+	}
+  }
+  
+  // Call the seedDatabase function to start the seeding process
+  seedDatabase();
+  
 
 // Seeding function for users (with two admins)
 async function seedUsers() {
