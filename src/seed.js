@@ -1,4 +1,6 @@
 // To seed database with users and classes, run npm run seed
+const dotenv = require('dotenv');
+dotenv.config();
 
 const mongoose = require('mongoose');
 const User = require('./models/user'); 
@@ -25,6 +27,11 @@ async function seedDatabase() {
 	try {
 	  await mongoose.connect(databaseURL);
 	  console.log("Connected to database!");
+
+	//   // Delete all existing users and classes
+	//   await User.deleteMany();
+	//   await Class.deleteMany();
+	//   console.log("Existing data deleted.");
   
 	  // Call seeding functions
 	  await seedUsers();
