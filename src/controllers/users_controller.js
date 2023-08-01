@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
+const { createToken } = require('../services/auth_service');
 
 
 // const signup2 = async (request, response) => {
@@ -122,17 +123,20 @@ const signup = async (request, response) => {
 	  });
   
 	  await newUser.save();
+
+	  const token = createToken(newUser._id, newUser.email);
   
 	  response.json({
 		message: 'Signup success!',
 		user: {
-		  email: newUser.email,
-		  mobile: newUser.mobile,
-		  firstName: newUser.firstName,
-		  lastName: newUser.lastName,
-		  street: newUser.street,
-		  state: newUser.state,
-		  postcode: newUser.postcode,
+			token: token,
+			email: newUser.email,
+			mobile: newUser.mobile,
+			firstName: newUser.firstName,
+			lastName: newUser.lastName,
+			street: newUser.street,
+			state: newUser.state,
+			postcode: newUser.postcode,
 		},
 	  });
 	} catch (error) {
