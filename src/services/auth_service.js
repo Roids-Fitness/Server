@@ -1,10 +1,9 @@
 const jwt = require("jsonwebtoken")
 
-const createToken = (user_id, email) => {
+const createToken = (user_id) => {
 	return jwt.sign(
 		{
 			user_id: user_id,
-			email: email
 		},
 		process.env.JWT_SECRET_KEY,
 		{ expiresIn: '1d' }

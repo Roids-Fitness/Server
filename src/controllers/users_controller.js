@@ -119,12 +119,13 @@ const signup = async (request, response) => {
 		street,
 		state,
 		postcode,
+		isAdmin: false,
 		savedClasses: [],
 	  });
   
 	  await newUser.save();
 
-	  const token = createToken(newUser._id, newUser.email);
+	  const token = createToken(newUser._id);
   
 	  response.json({
 		message: 'Signup success!',
@@ -157,21 +158,22 @@ const getUsers = (request, response) => {
 
 
 
-
 const login = async (request, response) => {
-	const user = await User.findOne({email: request.body.email});
-	
-	if (user && user.password === request.body.password){
+	const user = await User.findOne({email: request.body.email})
+
+	if (user && bcrypt.compareSync(request.body.password, user.password)){
+		const token = createToken(user._id)
 		response.json({
+			message: "Login success",
 			email: user.email,
-			message: "Login success"
-		});
+			token: token
+		})
 	} else {
 		response.json({
 			error: "Authentication failed"
-		});
+		})
 	}
-};
+}
 
 
 const updateUser = async (request, response) => {
