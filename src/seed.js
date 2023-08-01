@@ -94,7 +94,7 @@ async function seedUsers() {
   } catch (error) {
     console.error("Error seeding users:", error);
   }
-}
+};
 
 // Seeding function for classes
 async function seedClasses() {
@@ -146,4 +146,44 @@ async function seedClasses() {
   } catch (error) {
     console.error("Error seeding classes:", error);
   }
-}
+};
+
+
+// Add savedClasses to a test user
+async function addSavedClassesToTestUser() {
+	try {
+	  const yogaClass = await Class.findOne({ title: 'Yoga Class' });
+	  const absClass = await Class.findOne({ title: 'Abs Class' });
+	  const user1 = await User.findOne({ email: 'test1@email.com' });
+	  const user2 = await User.findOne({ email: 'test2@email.com' });
+  
+	  user1.savedClasses.push(yogaClass._id, absClass._id);
+	  user2.savedClasses.push(yogaClass._id);
+  
+	  await Promise.all([user1.save(), user2.save()]);
+  
+	  console.log("Saved classes added to test users successfully.");
+	} catch (error) {
+	  console.error("Error adding saved classes to test users:", error);
+	}
+  };
+  
+  // Add participantList to classes
+  async function addParticipantListToClass() {
+	try {
+	  const yogaClass = await Class.findOne({ title: 'Yoga Class' });
+	  const absClass = await Class.findOne({ title: 'Abs Class' });
+	  const user1 = await User.findOne({ email: 'test1@email.com' });
+	  const user2 = await User.findOne({ email: 'test2@email.com' });
+  
+	  yogaClass.participantList.push(user1._id, user2._id);
+	  absClass.participantList.push(user1._id);
+  
+	  await Promise.all([yogaClass.save(), absClass.save()]);
+  
+	  console.log("Participant list updated for classes successfully.");
+	} catch (error) {
+	  console.error("Error updating participant list for classes:", error);
+	}
+  };
+  
