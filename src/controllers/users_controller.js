@@ -1,11 +1,8 @@
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
 
 
-
-// const bcrypt = require('bcrypt');
-
-
-// const signup = async (request, response) => {
+// const signup2 = async (request, response) => {
 //   try {
 //     const {
 //       email,
@@ -64,6 +61,71 @@ const User = require('../models/user');
 
 
 
+// const signup1 = async (request, response) => {
+// 	let newUser = new User({
+// 		email: request.body.email,
+// 		password: request.body.password,
+// 		mobile: request.body.mobile,
+// 		firstName: request.body.firstName,
+// 		lastName: request.body.lastName,
+// 		street: request.body.street,
+// 		state: request.body.state,
+// 		postcode: request.body.postcode,
+// 		savedClasses: []
+// 	});
+
+// 	await newUser.save()
+// 				.catch(error => {
+// 					console.log(error.errors);
+// 				});
+	
+// 	response.json({
+// 		message: "Signup success!",
+// 		email: newUser.email,
+// 	});
+// };
+
+
+
+const signup = async (request, response) => {
+	try {
+		let newUser = new User({
+			email: request.body.email,
+			password: bcrypt.hashSync(request.body.password, bcrypt.genSaltSync(10)),
+			mobile: request.body.mobile,
+			firstName: request.body.firstName,
+			lastName: request.body.lastName,
+			street: request.body.street,
+			state: request.body.state,
+			postcode: request.body.postcode,
+			savedClasses: []
+		});
+  
+	  // Validate the input data here if needed
+	  // ...
+  
+	  // Check if the email is already registered
+	  const existingUser = await User.findOne({ email });
+	  if (existingUser) {
+		return response.status(409).json({ message: 'Email already registered' });
+	  }
+  
+	  await newUser.save();
+  
+	  response.json({
+		message: 'Signup success!',
+		user: {
+		  email: newUser.email,
+		},
+	  });
+	} catch (error) {
+	  console.error(error);
+	  response.status(500).json({ message: 'Signup failed' });
+	}
+  };
+
+
+
 
 const getUsers = (request, response) => {
 	response.json({
@@ -71,29 +133,7 @@ const getUsers = (request, response) => {
 	});
 };
 
-const signup = async (request, response) => {
-	let newUser = new User({
-		email: request.body.email,
-		password: request.body.password,
-		mobile: request.body.mobile,
-		firstName: request.body.firstName,
-		lastName: request.body.lastName,
-		street: request.body.street,
-		state: request.body.state,
-		postcode: request.body.postcode,
-		savedClasses: []
-	});
 
-	await newUser.save()
-				.catch(error => {
-					console.log(error.errors);
-				});
-	
-	response.json({
-		message: "Signup success!",
-		email: newUser.email,
-	});
-};
 
 
 const login = async (request, response) => {
