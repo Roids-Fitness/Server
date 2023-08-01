@@ -1,3 +1,4 @@
+const { response } = require("express");
 const jwt = require("jsonwebtoken")
 
 const createToken = (user_id) => {
@@ -14,7 +15,8 @@ const verifyToken = (token) => {
 	try {
 		return jwt.verify(token, process.env.JWT_SECRET_KEY);
 	} catch (error) {
-		throw new Error("Invalid token")
+		console.error(error);
+		response.status(500).json({ error: "Invalid token"});
 	}
 }
 

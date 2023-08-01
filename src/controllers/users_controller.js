@@ -158,22 +158,22 @@ const getUsers = (request, response) => {
 
 
 
-const login2 = async (request, response) => {
-	const user = await User.findOne({email: request.body.email})
+// const login2 = async (request, response) => {
+// 	const user = await User.findOne({email: request.body.email})
 
-	if (user && bcrypt.compareSync(request.body.password, user.password)){
-		const token = createToken(user._id)
-		response.json({
-			message: "Login success!",
-			email: user.email,
-			token: token
-		})
-	} else {
-		response.json({
-			error: "Authentication failed"
-		})
-	}
-}
+// 	if (user && bcrypt.compareSync(request.body.password, user.password)){
+// 		const token = createToken(user._id)
+// 		response.json({
+// 			message: "Login success!",
+// 			email: user.email,
+// 			token: token
+// 		})
+// 	} else {
+// 		response.json({
+// 			error: "Authentication failed"
+// 		})
+// 	}
+// }
 
 const login = async (request, response) => {
 	try {
@@ -193,7 +193,7 @@ const login = async (request, response) => {
 		  token: token,
 		});
 	  } else {
-		response.status(401).json({ error: 'Authentication failed' });
+		response.status(401).json({ error: 'Authentication failed. Wrong email or password.' });
 	  }
 	} catch (error) {
 	  console.error(error);

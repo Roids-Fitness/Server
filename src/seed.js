@@ -1,10 +1,13 @@
-// To seed database with users and classes, run npm run seed
+// To seed local database with users and classes, run npm run seed-test
 const dotenv = require('dotenv');
 dotenv.config();
 
 const mongoose = require('mongoose');
 const User = require('./models/user'); 
 const Class = require('./models/class'); 
+
+const bcrypt = require('bcrypt');
+
 
 // MongoDB database URL
 let databaseURL = "";
@@ -28,10 +31,10 @@ async function seedDatabase() {
 	  await mongoose.connect(databaseURL);
 	  console.log("Connected to database!");
 
-	//   // Delete all existing users and classes
-	//   await User.deleteMany();
-	//   await Class.deleteMany();
-	//   console.log("Existing data deleted.");
+	  // Delete all existing users and classes
+	  await User.deleteMany();
+	  await Class.deleteMany();
+	  console.log("Existing data deleted.");
   
 	  // Call seeding functions
 	  await seedUsers();
@@ -55,10 +58,11 @@ seedDatabase();
 // Seeding function for users (with two admins)
 async function seedUsers() {
   try {
+	const saltRounds = 10; // Number of salt rounds for bcrypt
     const users = [
       {
         email: 'admin1@admin.com',
-        password: 'admin1',
+        password: await bcrypt.hash(process.env.ADMIN_PASSWORD, saltRounds),
         firstName: 'admin1',
         lastName: 'Fitness',
         mobile: '1234567890',
@@ -71,7 +75,7 @@ async function seedUsers() {
       },
 	  {
         email: 'admin2@admin.com',
-        password: 'admin2',
+        password: await bcrypt.hash(process.env.ADMIN_PASSWORD, saltRounds),
         firstName: 'admin2',
         lastName: 'Fitness',
         mobile: '00000',
@@ -84,7 +88,7 @@ async function seedUsers() {
       },
 	  {
         email: 'test1@email.com',
-        password: 'test123',
+        password: await bcrypt.hash('test123', saltRounds),
         firstName: 'Test1',
         lastName: 'User',
         mobile: '0451255620',
@@ -97,7 +101,7 @@ async function seedUsers() {
       },
 	  {
         email: 'test2@email.com',
-        password: 'test123',
+        password: await bcrypt.hash('test123', saltRounds),
         firstName: 'Sally',
         lastName: 'Bob',
         mobile: '0404562185',
@@ -110,7 +114,7 @@ async function seedUsers() {
       },
 	  {
         email: 'test3@email.com',
-        password: 'test000',
+        password: await bcrypt.hash('testtest', saltRounds),
         firstName: 'Tom',
         lastName: 'George',
         mobile: '0404526589',
