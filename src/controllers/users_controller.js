@@ -89,20 +89,16 @@ const bcrypt = require('bcrypt');
 
 const signup = async (request, response) => {
 	try {
-		let newUser = new User({
-			email: request.body.email,
-			password: bcrypt.hashSync(request.body.password, bcrypt.genSaltSync(10)),
-			mobile: request.body.mobile,
-			firstName: request.body.firstName,
-			lastName: request.body.lastName,
-			street: request.body.street,
-			state: request.body.state,
-			postcode: request.body.postcode,
-			savedClasses: []
-		});
-  
-	  // Validate the input data here if needed
-	  // ...
+	  const {
+		email,
+		password,
+		mobile,
+		firstName,
+		lastName,
+		street,
+		state,
+		postcode,
+	  } = request.body;
   
 	  // Check if the email is already registered
 	  const existingUser = await User.findOne({ email });
@@ -110,12 +106,33 @@ const signup = async (request, response) => {
 		return response.status(409).json({ message: 'Email already registered' });
 	  }
   
+	  // Hash the password before saving
+	  const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+  
+	  const newUser = new User({
+		email,
+		password: hashedPassword,
+		mobile,
+		firstName,
+		lastName,
+		street,
+		state,
+		postcode,
+		savedClasses: [],
+	  });
+  
 	  await newUser.save();
   
 	  response.json({
 		message: 'Signup success!',
 		user: {
 		  email: newUser.email,
+		  mobile: newUser.mobile,
+		  firstName: newUser.firstName,
+		  lastName: newUser.lastName,
+		  street: newUser.street,
+		  state: newUser.state,
+		  postcode: newUser.postcode,
 		},
 	  });
 	} catch (error) {
@@ -123,6 +140,7 @@ const signup = async (request, response) => {
 	  response.status(500).json({ message: 'Signup failed' });
 	}
   };
+  
 
 
 
