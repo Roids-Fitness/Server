@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const ClassSchema = mongoose.Schema({
 	title: String,
-	date: Date,
+	startTime: Date,
+	endTime: Date,
 	trainer: String,
 	description: String,
 	participantList: [{type: mongoose.Types.ObjectId, ref: 'User'}]
