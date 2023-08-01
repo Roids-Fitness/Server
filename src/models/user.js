@@ -10,8 +10,8 @@ const UserSchema = mongoose.Schema({
 		type: String,
 		required: true
 	},
-	firstName, String,
-	lastName, String,
+	firstName: String,
+	lastName: String,
 	mobile: String,
 	street: String,
 	suburb: String,
