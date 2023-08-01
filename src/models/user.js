@@ -10,7 +10,13 @@ const UserSchema = mongoose.Schema({
 		type: String,
 		required: true
 	},
-	phone: String,
+	firstName, String,
+	lastName, String,
+	mobile: String,
+	street: String,
+	suburb: String,
+	state: String,
+	postcode: String,
 	isAdmin: Boolean,
 	savedClasses: [{type: mongoose.Types.ObjectId, ref: 'Class'}]
 });
