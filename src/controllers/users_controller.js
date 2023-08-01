@@ -100,6 +100,13 @@ const signup = async (request, response) => {
 		state,
 		postcode,
 	  } = request.body;
+
+	  // Check if email and password are provided
+	  if (!email || !password) {
+		return response
+		  .status(400)
+		  .json({ message: 'Email and password must be provided' });
+	  }
   
 	  // Check if the email is already registered
 	  const existingUser = await User.findOne({ email });
