@@ -6,11 +6,6 @@ const {validateRequest, validateAdmin} = require('../middlewares/auth_middleware
 
 
 
-// router.post('/notes', validateRequest, (req, res) => {
-//   // Handle POST /notes route with authentication validation
-//   // ...
-// });
-
 
 
 classesRouter.get("/timetable", getClassTimetable);

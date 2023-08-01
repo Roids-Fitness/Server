@@ -15,8 +15,9 @@ const verifyToken = (token) => {
 	try {
 		return jwt.verify(token, process.env.JWT_SECRET_KEY);
 	} catch (error) {
-		console.error(error);
-		response.status(500).json({ error: "Invalid token"});
+		// console.error(error);
+		// response.status(500).json({ error: "Invalid token"});
+		throw error;
 	}
 }
 

@@ -52,10 +52,13 @@ const validateRequest = async (request, response, next) => {
 		request.user = decoded;
 		next();
 	  } else {
-		return response.status(401).json({ error: 'Not authenticated for this action' });
+		return response.status(401).json({ error: 'Not authenticated for this action. Please provide valid token' });
 	  }
 	} catch (error) {
-	  next(error);
+		if (error.name === 'JsonWebTokenError' || error instanceof TypeError) {
+			return response.status(401).json({ error: 'Invalid token. Please provide a valid token for authentication.' });
+			}
+	  	next(error);
 	}
   };
   
