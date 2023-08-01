@@ -5,7 +5,20 @@ const User = require('./models/user');
 const Class = require('./models/class'); 
 
 // MongoDB database URL
-const databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+let databaseURL = "";
+switch (process.env.NODE_ENV.toLowerCase()) {
+	case "production":
+		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		break;
+	case "development":
+		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		break;
+	case "test":
+		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		break;
+	default:
+		console.error("Wrong environment mode. Database cannot connect.")
+};
 
 // Connect to the database
 async function seedDatabase() {
@@ -27,9 +40,10 @@ async function seedDatabase() {
 	}
   }
   
-  // Call the seedDatabase function to start the seeding process
-  seedDatabase();
+// Call the seedDatabase function to start the seeding process
+seedDatabase();
   
+
 
 // Seeding function for users (with two admins)
 async function seedUsers() {

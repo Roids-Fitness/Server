@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production node src/index.js",
+    "index": "NODE_ENV=production node src/index.js",
     "dev": "NODE_ENV=development nodemon src/index.js",
-	"seed": "node src/seed.js",
+	"seed": "NODE_ENV=production node src/seed.js",
+	"seed-test": "NODE_ENV=test node src/seed.js",
+	"start": "npm run seed && npm run index",
     "test": "NODE_ENV=test jest",
     "test-cc": "NODE_ENV=test jest --coverage"
   },
