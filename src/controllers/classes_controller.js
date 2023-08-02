@@ -41,20 +41,64 @@ const getClassByID = async (request, response) => {
     }
 };
 
-const createClass = async  (request, response) => {
+// const createClass = async  (request, response) => {
 
-	let newClass = new Class({
-		title: request.body.title,
-		startTime: request.body.startTime,
-		endTime: request.body.endTime,
-		trainer: request.body.trainer,
-		description: request.body.description,
-		participantList: []
-	});
-	await newClass.save();
-	response.status(201);
-	response.json(newClass);
+// 	let newClass = new Class({
+// 		title: request.body.title,
+// 		startTime: request.body.startTime,
+// 		endTime: request.body.endTime,
+// 		trainer: request.body.trainer,
+// 		description: request.body.description,
+// 		participantList: []
+// 	});
+// 	await newClass.save();
+// 	response.status(201);
+// 	response.json(newClass);
+// }
+
+const createClass = async (request, response) => {
+    try {
+        const { title, startTime, endTime, trainer, description } = request.body;
+        
+        // Validate necessary fields
+        if (!title || !startTime || !endTime) {
+            return response.status(400).json({ message: 'Missing required fields: title, startTime, endTime.' });
+        }
+
+        // Validate date format
+        const startDate = new Date(startTime);
+        const endDate = new Date(endTime);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return response.status(400).json({ message: 'Invalid date format. startTime and endTime must be valid dates. YYYY-MM-DDTHH:MM:SS ' });
+        }
+        
+        // Check for class time overlap
+        const overlapClass = await Class.findOne({
+            $or: [
+                { startTime: { $lt: endDate }, endTime: { $gt: startDate } }
+            ]
+        });
+        if (overlapClass) {
+            return response.status(400).json({ message: 'Class time overlaps with an existing class.' });
+        }
+        
+        let newClass = new Class({
+            title: title,
+            startTime: startDate,
+            endTime: endDate,
+            trainer: trainer,
+            description: description,
+            participantList: []
+        });
+        await newClass.save();
+        response.status(201).json(newClass);
+    } catch (error) {
+        console.error(error);
+        response.status(500).json({ message: 'Server Error' });
+    }
 }
+
+
 
 const updateClass = async (request, response) => {
 
