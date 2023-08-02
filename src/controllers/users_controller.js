@@ -221,7 +221,7 @@ const getAllUsers = async (request, response) => {
 
 const getUserByID = async (request, response) => {
     try {
-        let foundUser = await User.findById(request.user.user_id);
+        let foundUser = await User.findById(request.user.user_id).select('-isAdmin');
         if (foundUser) {
             response.json(foundUser);
         } else {
