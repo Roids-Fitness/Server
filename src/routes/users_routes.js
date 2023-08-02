@@ -1,10 +1,10 @@
 const express = require('express');
 const usersRouter = express.Router();
-const {getUsers, signup, login, updateUser, deleteUser} = require('../controllers/users_controller');
+const {getUsers, login, updateUser, deleteUser, register} = require('../controllers/users_controller');
 const {validateRequest, validateAdmin} = require('../middlewares/auth_middleware');
 
 // Public routes (No authentication required)
-usersRouter.post("/signup", signup);
+usersRouter.post("/register", register);
 usersRouter.post("/login", login);
 
 // Routes that require user authentication

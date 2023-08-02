@@ -72,7 +72,8 @@ const updateClass = async (request, response) => {
 };
 
 
-const saveClassToUser = async (request, response) => {
+// Save class ID to user and update class participant list
+const classSignup = async (request, response) => {
 	let userId = request.user.user_id;
 	let classId = request.params.classId;
 
@@ -107,4 +108,4 @@ const deleteClass = async (request, response) => {
 };
 
 
-module.exports = {getClasses, getMyClasses, getClassByID, getClassTimetable, createClass, updateClass, saveClassToUser, deleteAllClasses, deleteClass};
+module.exports = {getClasses, getMyClasses, getClassByID, getClassTimetable, createClass, updateClass, classSignup, deleteAllClasses, deleteClass};

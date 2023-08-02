@@ -41,15 +41,15 @@ databaseConnector(databaseURL)
 
 app.get("/", (request, response) => {
 	response.json({
-		message: "Homepage"
+		message: "This is the homepage."
 	});
 });
 
 const classesRouter = require('./routes/classes_routes');
-app.use("/classes", classesRouter);
+app.use("/class", classesRouter);
 
 const usersRouter = require('./routes/users_routes');
-app.use("/users", usersRouter);
+app.use("/user", usersRouter);
 
 module.exports = {
 	app, PORT

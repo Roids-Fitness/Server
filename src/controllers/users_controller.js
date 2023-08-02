@@ -88,7 +88,7 @@ const { createToken } = require('../services/auth_service');
 
 
 
-const signup = async (request, response) => {
+const register = async (request, response) => {
 	try {
 	  const {
 		email,
@@ -236,4 +236,4 @@ const deleteUser = async (request, response) => {
 	}
 };
 
-module.exports = {getUsers, signup, login, updateUser, deleteUser};
+module.exports = {getUsers, register, login, updateUser, deleteUser};
