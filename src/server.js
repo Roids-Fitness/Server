@@ -5,8 +5,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 
-const PORT = process.env.PORT || 3001
-const HOST = process.env.HOST || '127.0.0.1'
+const PORT = process.env.PORT 
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
