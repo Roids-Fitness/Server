@@ -6,11 +6,13 @@
   "scripts": {
     "start": "NODE_ENV=production node src/index.js",
     "dev": "NODE_ENV=development nodemon src/index.js",
-    "seed-production": "NODE_ENV=production node src/seed.js",
-	"seed-dev": "NODE_ENV=development node src/seed.js",
-	"seed-test": "NODE_ENV=test node src/seed.js",
-    "test": "NODE_ENV=test jest",
-    "test-cc": "NODE_ENV=test jest --coverage"
+	"test": "NODE_ENV=test jest",
+    "test-cc": "NODE_ENV=test jest --coverage",
+	"seed": "SEED=true NODE_ENV=development node src/seed.js",
+	"wipe": "WIPE=true NODE_ENV=development node src/seed.js",
+	"wipe-and-seed": "WIPE=true SEED=true NODE_ENV=development node src/seed.js",
+    "seed-production": "SEED=true NODE_ENV=production node src/seed.js",
+	"wipe-and-seed-test": "WIPE=true SEED=true NODE_ENV=test node src/seed.js"
   },
   "keywords": [],
   "author": "Tony Le Huynh, Johnson Wang",

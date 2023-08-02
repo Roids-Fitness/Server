@@ -29,23 +29,34 @@ switch (process.env.NODE_ENV.toLowerCase()) {
 async function seedDatabase() {
 	try {
 	  await mongoose.connect(databaseURL);
-	  console.log("Connected to database!");
+	  console.log("Connected to database!\n");
 
-	  // Delete all existing users and classes only in "test" or "dev" environments
-	  if (process.env.NODE_ENV.toLowerCase() === "test" || process.env.NODE_ENV.toLowerCase() === "development") {
+	  // Check if WIPE=true environment variable is set to true
+	  const wipeData = process.env.WIPE === 'true';
+
+	  if (wipeData) {
+		// Delete all existing users and classes only when WIPE=true
 		await User.deleteMany();
 		await Class.deleteMany();
-		console.log("Existing data deleted.");
+		console.log("Existing data deleted. \n");
 	  }
-	  // Call seeding functions
-	  await seedUsers();
-	  await seedClasses();
-	  await addSavedClassesToTestUser();
-	  await addParticipantListToClass();
-  
+
+	  // Check if SEED=true environment variable is set to true
+	  const seedData = process.env.SEED === 'true';
+
+	  if (seedData) {
+		// Call seeding function only when SEED=true
+		await seedUsers();
+		await seedClasses();
+		await addSavedClassesToTestUser();
+		await addParticipantListToClass();
+		console.log("Database seeding completed.\n");
+	  }
+
 	  // Close the database connection
 	  await mongoose.connection.close();
-	  console.log("Database seeding completed.");
+	  console.log("Database connection closed.");
+	  console.log();
 	} catch (error) {
 	  console.error("Error seeding database:", error);
 	}
