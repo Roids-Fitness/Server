@@ -87,7 +87,7 @@ const createClass = async (request, response) => {
 }
 
 
-const updateClass = async (request, response) => {
+const updateClassDetails = async (request, response) => {
     try {
         const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
 
@@ -163,23 +163,38 @@ const classSignup = async (request, response) => {
 
 
 const deleteAllClasses = async (request, response) => {
-	await Class.deleteMany({});
-	response.json({
-		message: "All classes deleted"
-	});
-};
-
-const deleteClass = async (request, response) => {
-	classToDelete = await Class.findByIdAndDelete(request.params.id)
-								.catch(error => {
-									console.log("Error while accessing data:\n" + error);
-								});
-	if (classToDelete) {
-		response.json("Class deleted");
-	} else {
-		response.json({error: "Class ID not found"});
+	try {
+		await Class.deleteMany({});
+		response.json({
+			message: "All classes deleted"
+		});
+	} catch (error) {
+		response.status(500).json({
+			message: "An error occurred while deleting the classes",
+			error: error.message
+		});
 	}
 };
 
 
-module.exports = {getAllClasses, getClassByID, createClass, updateClass, classSignup, deleteAllClasses, deleteClass};
+const deleteClass = async (request, response) => {
+	try {
+		const classToDelete = await Class.findByIdAndDelete(request.params.id);
+
+		if (classToDelete) {
+			response.json("Class deleted");
+		} else {
+			response.status(404).json({error: "Class ID not found"});
+		}
+	} catch (error) {
+		console.log("Error while accessing data:\n" + error);
+		response.status(500).json({
+			message: "An error occurred while deleting the class",
+			error: error.message
+		});
+	}
+};
+
+
+
+module.exports = {getAllClasses, getClassByID, createClass, updateClassDetails, classSignup, deleteAllClasses, deleteClass};

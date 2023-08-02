@@ -155,36 +155,13 @@ const register = async (request, response) => {
 	  response.status(500).json({ message: 'Signup failed' });
 	}
   };
-  
 
-
-
-
-
-
-
-
-// const login2 = async (request, response) => {
-// 	const user = await User.findOne({email: request.body.email})
-
-// 	if (user && bcrypt.compareSync(request.body.password, user.password)){
-// 		const token = createToken(user._id)
-// 		response.json({
-// 			message: "Login success!",
-// 			email: user.email,
-// 			token: token
-// 		})
-// 	} else {
-// 		response.json({
-// 			error: "Authentication failed"
-// 		})
-// 	}
-// }
 
 const login = async (request, response) => {
 	try {
 	  const { email, password } = request.body;
   
+	  // Check if email and password are provided
 	  if (!email || !password) {
 		return response.status(400).json({ error: 'Email and password are required to login' });
 	  }
@@ -244,30 +221,45 @@ const getMyClasses = async (request, response) => {
 	}
   };
 
-const updateUser = async (request, response) => {
-
-	let updatedUser = await User.findByIdAndUpdate(request.params.id, request.body, {new: true})
-								.catch(error => {
-									console.log("Error while accessing data:\n" + error);
-								});
-	if (updatedUser) {
-		response.send(updatedUser);
-	} else {
-		response.json({error: "User ID not found"});
-		response.status(404);
+  const updateUser = async (request, response) => {
+	try {
+		let updatedUser = await User.findByIdAndUpdate(request.params.id, request.body, {new: true});
+		
+		if (updatedUser) {
+			response.json({
+				message: "User updated successfully",
+				data: updatedUser
+			});
+		} else {
+			response.status(404).json({error: "User ID not found"});
+		}
+	} catch (error) {
+		console.log("Error while accessing data:\n" + error);
+		response.status(500).json({
+			message: "An error occurred while updating the user",
+			error: error.message
+		});
 	}
 };
+
 
 const deleteUser = async (request, response) => {
-	userToDelete = await User.findByIdAndDelete(request.params.id)
-								.catch(error => {
-									console.log("Error while accessing data:\n" + error);
-								});
-	if (userToDelete) {
-		response.json("User deleted");
-	} else {
-		response.json({error: "User ID not found"});
+	try {
+		const userToDelete = await User.findByIdAndDelete(request.params.id);
+	
+		if (userToDelete) {
+			response.json("User deleted");
+		} else {
+			response.status(404).json({error: "User ID not found"});
+		}
+	} catch (error) {
+		console.log("Error while accessing data:\n" + error);
+		response.status(500).json({
+			message: "An error occurred while deleting the user",
+			error: error.message
+		});
 	}
 };
+
 
 module.exports = {getAllUsers, register, login, updateUser, deleteUser, getUserByID, getMyClasses};

@@ -1,6 +1,6 @@
 const express = require('express');
 const classesRouter = express.Router();
-const {createClass, getClassByID, updateClass, deleteAllClasses, deleteClass, classSignup, getAllClasses} = require('../controllers/classes_controller');
+const {createClass, getClassByID, updateClassDetails, deleteAllClasses, deleteClass, classSignup, getAllClasses} = require('../controllers/classes_controller');
 const {validateRequest, validateAdmin} = require('../middlewares/auth_middleware');
 
 
@@ -12,7 +12,7 @@ classesRouter.get('/:id', getClassByID);
 
 // Routes that require user authentication
 classesRouter.use(validateRequest);
-classesRouter.put('/update/:id', validateAdmin, updateClass);
+classesRouter.put('/update/:id', validateAdmin, updateClassDetails);
 classesRouter.put('/:id', classSignup);
 
 // Routes that require both user and admin authentication
