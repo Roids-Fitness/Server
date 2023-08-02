@@ -16,9 +16,14 @@ const getAllClasses = async (request, response) => {
 };
 
 const getMyClasses = async (request, response) => {
-	let user = await User.findOne({email: request.body.email}).populate('classes');
-	request.send(user.classes);
-}
+	try {
+	  const user = await User.findById(request.user.user_id).populate('savedClasses');
+	  response.send(user.savedClasses);
+	} catch (error) {
+	  response.status(500).json({ error: 'Error while retrieving saved classes' });
+	}
+  };
+  
 
 
 const getClassByID = async (request, response) => {

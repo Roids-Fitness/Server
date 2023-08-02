@@ -7,12 +7,13 @@ const {validateRequest, validateAdmin} = require('../middlewares/auth_middleware
 // Public routes (No authentication required)
 classesRouter.get('/', getAllClasses);
 classesRouter.get('/timetable', getAllClasses);
+classesRouter.get('/myclasses', validateRequest, getMyClasses);
 classesRouter.get('/:id', getClassByID);
+
 
 // Routes that require user authentication
 classesRouter.use(validateRequest);
 classesRouter.put('/:id', classSignup);
-classesRouter.get('/myclasses', getMyClasses);
 
 // Routes that require both user and admin authentication
 classesRouter.use(validateAdmin);
@@ -22,3 +23,6 @@ classesRouter.delete('/deleteall', deleteAllClasses);
 classesRouter.delete('/:id', deleteClass);
 
 module.exports = classesRouter;
+
+
+
