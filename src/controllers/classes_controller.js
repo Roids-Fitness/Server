@@ -25,16 +25,16 @@ const getAllClasses = async (request, response) => {
 
 const getClassByID = async (request, response) => {
     try {
-        let foundClass = await Class.findById(request.params.id);
+        const foundClass = await Class.findById(request.params.id);
         if (foundClass) {
             response.json(foundClass);
         } else {
-            response.json({ error: "Class ID not found" });
 			response.status(404);
+            response.json({ error: "Class ID not found" });
         }
     } catch (error) {
         console.log("Error while accessing data:\n" + error);
-        response.status(404);
+        response.status(500).json({error: "Internal Server Error"});
     }
 };
 
@@ -153,11 +153,10 @@ const classSignup = async (request, response) => {
 	try {
 		await User.findByIdAndUpdate(userId, { $addToSet: { savedClasses: classId } });
 		await Class.findByIdAndUpdate(classId, { $addToSet: { participantList: userId } });
-		response.status(201)
 		response.json({ message: "Class saved to user profile successfully. Class participant list also updated."});
 	} catch (error) {
-		response.status(500)
-		response.json({ error: "Failed to save class."});
+		console.log("Error while accessing data:\n" + error);
+        response.status(500).json({error: "Failed to save class."});
 	}
 };
 
@@ -181,6 +180,7 @@ const deleteClass = async (request, response) => {
 	try {
 		const classToDelete = await Class.findByIdAndDelete(request.params.id);
 
+		// Delete class from any user savedLists
 		if (classToDelete) {
 			await User.updateMany(
 				{ savedClasses: classToDelete._id },

@@ -38,7 +38,6 @@ databaseConnector(databaseURL)
 });
 
 
-
 app.get("/", (request, response) => {
 	response.json({
 		message: "This is the homepage."
