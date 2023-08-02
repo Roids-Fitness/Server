@@ -204,15 +204,33 @@ const login = async (request, response) => {
 	}
   };
   
-  const getAllUsers = async (request, response) => {
+const getAllUsers = async (request, response) => {
 	try {
 		users = await User.find();
 		response.send(users);
-	  } catch (error) {
-	  console.error('Error while accessing data:', error.message);
-	  response.status(500).json({ error: 'Error while retrieving classes' });
+	} catch (error) {
+		console.error('Error while accessing data:', error.message);
+		response.status(500).json({ error: 'Error while retrieving classes' });
 	}
-  };
+};
+
+
+
+const getUserByID = async (request, response) => {
+    try {
+        let foundUser = await User.findById(request.user.user_id);
+        if (foundUser) {
+            response.json(foundUser);
+        } else {
+            response.json({ error: "User ID not found" });
+			response.status(404);
+        }
+    } catch (error) {
+        console.log("Error while accessing data:\n" + error);
+        response.status(404);
+    }
+};
+
 
 const updateUser = async (request, response) => {
 
@@ -240,4 +258,4 @@ const deleteUser = async (request, response) => {
 	}
 };
 
-module.exports = {getAllUsers, register, login, updateUser, deleteUser};
+module.exports = {getAllUsers, register, login, updateUser, deleteUser, getUserByID};
