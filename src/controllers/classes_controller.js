@@ -2,17 +2,16 @@ const Class = require('../models/class');
 const User = require('../models/user');
 
 
-const getClasses = async (request, response) => {
+const getAllClasses = async (request, response) => {
 	let classes;
 
-	// Check if 'trainer' query paramter exists in the request, then search by trainer
+	// Check if 'trainer' query parameter exists in the request, then search by trainer
 	if ('trainer' in request.query) {
 		const trainerName = request.query.trainer;
 		classes = await Class.find({ trainer: trainerName });
 	} else {
 		classes = await Class.find();
 	}
-
 	response.send(classes);
 };
 
@@ -21,11 +20,6 @@ const getMyClasses = async (request, response) => {
 	request.send(user.classes);
 }
 
-const getClassTimetable = (request, response) => {
-	response.json({
-		message: "Class timetable page"
-	});
-}
 
 const getClassByID = async (request, response) => {
     try {
@@ -108,4 +102,4 @@ const deleteClass = async (request, response) => {
 };
 
 
-module.exports = {getClasses, getMyClasses, getClassByID, getClassTimetable, createClass, updateClass, classSignup, deleteAllClasses, deleteClass};
+module.exports = {getAllClasses, getMyClasses, getClassByID, createClass, updateClass, classSignup, deleteAllClasses, deleteClass};

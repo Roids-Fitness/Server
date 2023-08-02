@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
 const UserSchema = mongoose.Schema({
+	firstName: String,
+	lastName: String,
 	email: {
 		type: String,
 		unique: true,
@@ -10,13 +12,11 @@ const UserSchema = mongoose.Schema({
 		type: String,
 		required: true
 	},
-	firstName: String,
-	lastName: String,
-	mobile: String,
 	street: String,
 	suburb: String,
 	state: String,
 	postcode: String,
+	mobile: String,
 	isAdmin: Boolean,
 	savedClasses: [{type: mongoose.Types.ObjectId, ref: 'Class'}]
 });
