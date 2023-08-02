@@ -13,13 +13,13 @@ const bcrypt = require('bcrypt');
 let databaseURL = "";
 switch (process.env.NODE_ENV.toLowerCase()) {
 	case "production":
-		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		databaseURL = process.env.DATABASE_URL;
 		break;
 	case "development":
 		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
 		break;
 	case "test":
-		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		databaseURL = "mongodb://localhost:27017/roids_fitness_db_test";
 		break;
 	default:
 		console.error("Wrong environment mode. Database cannot connect.")
@@ -29,22 +29,34 @@ switch (process.env.NODE_ENV.toLowerCase()) {
 async function seedDatabase() {
 	try {
 	  await mongoose.connect(databaseURL);
-	  console.log("Connected to database!");
+	  console.log("Connected to database!\n");
 
-	  // Delete all existing users and classes
-	  await User.deleteMany();
-	  await Class.deleteMany();
-	  console.log("Existing data deleted.");
-  
-	  // Call seeding functions
-	  await seedUsers();
-	  await seedClasses();
-	  await addSavedClassesToTestUser();
-	  await addParticipantListToClass();
-  
+	  // Check if WIPE=true environment variable is set to true
+	  const wipeData = process.env.WIPE === 'true';
+
+	  if (wipeData) {
+		// Delete all existing users and classes only when WIPE=true
+		await User.deleteMany();
+		await Class.deleteMany();
+		console.log("Existing data deleted. \n");
+	  }
+
+	  // Check if SEED=true environment variable is set to true
+	  const seedData = process.env.SEED === 'true';
+
+	  if (seedData) {
+		// Call seeding function only when SEED=true
+		await seedUsers();
+		await seedClasses();
+		await addSavedClassesToTestUser();
+		await addParticipantListToClass();
+		console.log("Database seeding completed.\n");
+	  }
+
 	  // Close the database connection
 	  await mongoose.connection.close();
-	  console.log("Database seeding completed.");
+	  console.log("Database connection closed.");
+	  console.log();
 	} catch (error) {
 	  console.error("Error seeding database:", error);
 	}
