@@ -157,11 +157,7 @@ const register = async (request, response) => {
 
 
 
-const getUsers = (request, response) => {
-	response.json({
-		message: "List of users goes here"
-	});
-};
+
 
 
 
@@ -208,7 +204,15 @@ const login = async (request, response) => {
 	}
   };
   
-
+  const getAllUsers = async (request, response) => {
+	try {
+		users = await User.find();
+		response.send(users);
+	  } catch (error) {
+	  console.error('Error while accessing data:', error.message);
+	  response.status(500).json({ error: 'Error while retrieving classes' });
+	}
+  };
 
 const updateUser = async (request, response) => {
 
@@ -236,4 +240,4 @@ const deleteUser = async (request, response) => {
 	}
 };
 
-module.exports = {getUsers, register, login, updateUser, deleteUser};
+module.exports = {getAllUsers, register, login, updateUser, deleteUser};
