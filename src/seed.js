@@ -13,13 +13,13 @@ const bcrypt = require('bcrypt');
 let databaseURL = "";
 switch (process.env.NODE_ENV.toLowerCase()) {
 	case "production":
-		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		databaseURL = process.env.DATABASE_URL;
 		break;
 	case "development":
 		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
 		break;
 	case "test":
-		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		databaseURL = "mongodb://localhost:27017/roids_fitness_db_test";
 		break;
 	default:
 		console.error("Wrong environment mode. Database cannot connect.")
@@ -31,11 +31,12 @@ async function seedDatabase() {
 	  await mongoose.connect(databaseURL);
 	  console.log("Connected to database!");
 
-	  // Delete all existing users and classes
-	  await User.deleteMany();
-	  await Class.deleteMany();
-	  console.log("Existing data deleted.");
-  
+	  // Delete all existing users and classes only in "test" or "dev" environments
+	  if (process.env.NODE_ENV.toLowerCase() === "test" || process.env.NODE_ENV.toLowerCase() === "development") {
+		await User.deleteMany();
+		await Class.deleteMany();
+		console.log("Existing data deleted.");
+	  }
 	  // Call seeding functions
 	  await seedUsers();
 	  await seedClasses();

@@ -5,7 +5,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001
+const HOST = process.env.HOST || '127.0.0.1'
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
@@ -14,13 +15,13 @@ app.use(express.urlencoded({extended: true}))
 let databaseURL = "";
 switch (process.env.NODE_ENV.toLowerCase()) {
 	case "production":
-		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		databaseURL = process.env.DATABASE_URL;
 		break;
 	case "development":
 		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
 		break;
 	case "test":
-		databaseURL = "mongodb://localhost:27017/roids_fitness_db";
+		databaseURL = "mongodb://localhost:27017/roids_fitness_db_test";
 		break;
 	default:
 		console.error("Wrong environment mode. Database cannot connect.")
@@ -44,6 +45,21 @@ app.get("/", (request, response) => {
 	});
 });
 
+
+app.get("/databaseHealth", (request, response) => {
+    let databaseState = mongoose.connection.readyState;
+    let databaseName = mongoose.connection.name;
+    let databaseModels = mongoose.connection.modelNames();
+    let databaseHost = mongoose.connection.host;
+
+    response.json({
+        readyState: databaseState,
+        dbName: databaseName,
+        dbModels: databaseModels,
+        dbHost: databaseHost
+    })
+});
+
 const classesRouter = require('./routes/classes_routes');
 app.use("/class", classesRouter);
 
@@ -51,5 +67,5 @@ const usersRouter = require('./routes/users_routes');
 app.use("/user", usersRouter);
 
 module.exports = {
-	app, PORT
+	app, PORT, HOST
 };
