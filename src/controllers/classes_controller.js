@@ -2,6 +2,7 @@ const Class = require('../models/class');
 const User = require('../models/user');
 const moment = require('moment-timezone');
 
+
 const getAllClasses = async (request, response) => {
 	try {
 	  let classes;
@@ -22,10 +23,6 @@ const getAllClasses = async (request, response) => {
   };
   
 
-
-  
-
-
 const getClassByID = async (request, response) => {
     try {
         let foundClass = await Class.findById(request.params.id);
@@ -40,21 +37,6 @@ const getClassByID = async (request, response) => {
         response.status(404);
     }
 };
-
-// const createClass = async  (request, response) => {
-
-// 	let newClass = new Class({
-// 		title: request.body.title,
-// 		startTime: request.body.startTime,
-// 		endTime: request.body.endTime,
-// 		trainer: request.body.trainer,
-// 		description: request.body.description,
-// 		participantList: []
-// 	});
-// 	await newClass.save();
-// 	response.status(201);
-// 	response.json(newClass);
-// }
 
 
 const createClass = async (request, response) => {
@@ -106,17 +88,60 @@ const createClass = async (request, response) => {
 
 
 const updateClass = async (request, response) => {
+    try {
+        const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
 
-	let updatedClass = await Class.findByIdAndUpdate(request.params.id, request.body, {new: true})
-								.catch(error => {
-									console.log("Error while accessing data:\n" + error);
-								});
-	if (updateClass) {
-		response.send(updatedClass);
-	} else {
-		response.json({error: "Class ID not found"});
-		response.status(404);
-	}
+        let startTime, endTime;
+        if (startTimeStr) {
+            startTime = moment.tz(startTimeStr, 'Australia/Brisbane').toDate();
+            if (isNaN(startTime.getTime())) {
+                return response.status(400).json({ 
+                    message: 'Invalid startTime format. It must be a valid date. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00'
+                });
+            }
+        }
+
+        if (endTimeStr) {
+            endTime = moment.tz(endTimeStr, 'Australia/Brisbane').toDate();
+            if (isNaN(endTime.getTime())) {
+                return response.status(400).json({ 
+                    message: 'Invalid endTime format. It must be a valid date. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00'
+                });
+            }
+        }
+
+        // Check if endTime is after startTime if both are provided
+        if (startTime && endTime && endTime <= startTime) {
+            return response.status(400).json({ message: 'endTime must be after startTime.' });
+        }
+        
+        // Check for class time overlap only if both startTime and endTime are provided
+        if (startTime && endTime) {
+            const overlapClass = await Class.findOne({
+                $or: [
+                    { startTime: { $lte: endTime }, endTime: { $gte: startTime } }
+                ]
+            });
+
+            if (overlapClass) {
+                return response.status(400).json({ message: 'Class time overlaps with an existing class.' });
+            }
+        }
+
+        let updatedClass = await Class.findByIdAndUpdate(request.params.id, request.body, {new: true});
+
+        if (updatedClass) {
+			response.json({
+				message: 'Class successfully updated!',
+				class: updatedClass
+			});
+		} else {
+			response.status(404).json({error: "Class ID not found"});
+		}
+    } catch(error) {
+        console.log("Error while accessing data:\n" + error);
+        response.status(500).json({error: "Internal Server Error"});
+    }
 };
 
 
