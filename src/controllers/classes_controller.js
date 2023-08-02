@@ -1,6 +1,6 @@
 const Class = require('../models/class');
 const User = require('../models/user');
-
+const moment = require('moment-timezone');
 
 const getAllClasses = async (request, response) => {
 	try {
@@ -56,6 +56,7 @@ const getClassByID = async (request, response) => {
 // 	response.json(newClass);
 // }
 
+
 const createClass = async (request, response) => {
     try {
         const { title, startTime, endTime, trainer, description } = request.body;
@@ -66,16 +67,21 @@ const createClass = async (request, response) => {
         }
 
         // Validate date format
-        const startDate = new Date(startTime);
-        const endDate = new Date(endTime);
+        const startDate = moment.tz(startTime, 'Australia/Brisbane').toDate();
+        const endDate = moment.tz(endTime, 'Australia/Brisbane').toDate();
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            return response.status(400).json({ message: 'Invalid date format. startTime and endTime must be valid dates. YYYY-MM-DDTHH:MM:SS ' });
+            return response.status(400).json({ message: 'Invalid date format. startTime and endTime must be valid dates. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00' });
+        }
+
+        // Check if endTime is after startTime
+        if (endDate <= startDate) {
+            return response.status(400).json({ message: 'endTime must be after startTime.' });
         }
         
         // Check for class time overlap
         const overlapClass = await Class.findOne({
             $or: [
-                { startTime: { $lt: endDate }, endTime: { $gt: startDate } }
+                { startTime: { $lte: endDate }, endTime: { $gte: startDate } }
             ]
         });
         if (overlapClass) {
@@ -91,13 +97,12 @@ const createClass = async (request, response) => {
             participantList: []
         });
         await newClass.save();
-        response.status(201).json(newClass);
+		response.status(201).json({ message: 'Class successfully created', class: newClass });
     } catch (error) {
         console.error(error);
         response.status(500).json({ message: 'Server Error' });
     }
 }
-
 
 
 const updateClass = async (request, response) => {
