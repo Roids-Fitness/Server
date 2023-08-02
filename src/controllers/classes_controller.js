@@ -182,6 +182,11 @@ const deleteClass = async (request, response) => {
 		const classToDelete = await Class.findByIdAndDelete(request.params.id);
 
 		if (classToDelete) {
+			await User.updateMany(
+				{ savedClasses: classToDelete._id },
+				{ $pull: { savedClasses: classToDelete._id } }
+			);
+
 			response.json("Class deleted");
 		} else {
 			response.status(404).json({error: "Class ID not found"});

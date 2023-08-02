@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const Class = require('../models/class');
 const bcrypt = require('bcrypt');
 const { createToken } = require('../services/auth_service');
 
@@ -243,11 +244,34 @@ const getMyClasses = async (request, response) => {
 };
 
 
+// const deleteUser = async (request, response) => {
+// 	try {
+// 		const userToDelete = await User.findByIdAndDelete(request.params.id);
+	
+// 		if (userToDelete) {
+// 			response.json("User deleted");
+// 		} else {
+// 			response.status(404).json({error: "User ID not found"});
+// 		}
+// 	} catch (error) {
+// 		console.log("Error while accessing data:\n" + error);
+// 		response.status(500).json({
+// 			message: "An error occurred while deleting the user",
+// 			error: error.message
+// 		});
+// 	}
+// };
+
 const deleteUser = async (request, response) => {
 	try {
 		const userToDelete = await User.findByIdAndDelete(request.params.id);
 	
 		if (userToDelete) {
+			await Class.updateMany(
+				{ participantList: userToDelete._id },
+				{ $pull: { participantList: userToDelete._id } }
+			);
+
 			response.json("User deleted");
 		} else {
 			response.status(404).json({error: "User ID not found"});
