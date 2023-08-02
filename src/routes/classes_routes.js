@@ -1,13 +1,12 @@
 const express = require('express');
 const classesRouter = express.Router();
-const {createClass, getClassByID, updateClass, deleteAllClasses, deleteClass, getMyClasses, classSignup, getAllClasses} = require('../controllers/classes_controller');
+const {createClass, getClassByID, updateClass, deleteAllClasses, deleteClass, classSignup, getAllClasses} = require('../controllers/classes_controller');
 const {validateRequest, validateAdmin} = require('../middlewares/auth_middleware');
 
 
 // Public routes (No authentication required)
 classesRouter.get('/', getAllClasses);
 classesRouter.get('/timetable', getAllClasses);
-classesRouter.get('/myclasses', validateRequest, getMyClasses);
 classesRouter.get('/:id', getClassByID);
 
 

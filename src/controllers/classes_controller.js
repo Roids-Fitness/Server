@@ -22,15 +22,7 @@ const getAllClasses = async (request, response) => {
   };
   
 
-const getMyClasses = async (request, response) => {
-	try {
-		const user = await User.findById(request.user.user_id).populate('savedClasses');
-		response.send(user.savedClasses);
-	} catch (error) {
-		console.log("Error while accessing data:\n" + error);
-		response.status(500).json({ error: 'Error while retrieving saved classes' });
-	}
-  };
+
   
 
 
@@ -116,4 +108,4 @@ const deleteClass = async (request, response) => {
 };
 
 
-module.exports = {getAllClasses, getMyClasses, getClassByID, createClass, updateClass, classSignup, deleteAllClasses, deleteClass};
+module.exports = {getAllClasses, getClassByID, createClass, updateClass, classSignup, deleteAllClasses, deleteClass};
