@@ -3,24 +3,32 @@ const User = require('../models/user');
 
 
 const getAllClasses = async (request, response) => {
-	let classes;
+	try {
+	  let classes;
 
-	// Check if 'trainer' query parameter exists in the request, then search by trainer
-	if ('trainer' in request.query) {
+	  // Check if 'trainer' query parameter exists in the request, then search by trainer
+	  if ('trainer' in request.query) {
 		const trainerName = request.query.trainer;
 		classes = await Class.find({ trainer: trainerName });
-	} else {
+	  } else {
 		classes = await Class.find();
+	  }
+  
+	  response.send(classes);
+	} catch (error) {
+	  console.error('Error while accessing data:', error.message);
+	  response.status(500).json({ error: 'Error while retrieving classes' });
 	}
-	response.send(classes);
-};
+  };
+  
 
 const getMyClasses = async (request, response) => {
 	try {
-	  const user = await User.findById(request.user.user_id).populate('savedClasses');
-	  response.send(user.savedClasses);
+		const user = await User.findById(request.user.user_id).populate('savedClasses');
+		response.send(user.savedClasses);
 	} catch (error) {
-	  response.status(500).json({ error: 'Error while retrieving saved classes' });
+		console.log("Error while accessing data:\n" + error);
+		response.status(500).json({ error: 'Error while retrieving saved classes' });
 	}
   };
   
