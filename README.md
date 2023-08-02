@@ -47,3 +47,12 @@ Git
 - Has README and gitignore file with appropriate content
 - Uses multiple feature branches with commits from all team members
 - Demonstrates frequent commits, merges, and pull requests from all team members
+
+
+
+
+
+Errors to handle..
+
+Error while accessing data:
+CastError: Cast to ObjectId failed for value "timetable" (type string) at path "_id" for model "Class"
