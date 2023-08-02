@@ -91,14 +91,15 @@ const { createToken } = require('../services/auth_service');
 const register = async (request, response) => {
 	try {
 	  const {
-		email,
-		password,
-		mobile,
 		firstName,
 		lastName,
+		email,
+		password,
 		street,
+		suburb,
 		state,
 		postcode,
+		mobile,
 	  } = request.body;
 
 	  // Check if email and password are provided
@@ -118,14 +119,15 @@ const register = async (request, response) => {
 	  const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
   
 	  const newUser = new User({
-		email,
-		password: hashedPassword,
-		mobile,
 		firstName,
 		lastName,
+		email,
+		password: hashedPassword,
 		street,
+		suburb,
 		state,
 		postcode,
+		mobile,
 		isAdmin: false,
 		savedClasses: [],
 	  });
@@ -139,12 +141,13 @@ const register = async (request, response) => {
 		user: {
 			token: token,
 			email: newUser.email,
-			mobile: newUser.mobile,
 			firstName: newUser.firstName,
 			lastName: newUser.lastName,
 			street: newUser.street,
+			suburb: newUser.suburb,
 			state: newUser.state,
 			postcode: newUser.postcode,
+			mobile: newUser.mobile,
 		},
 	  });
 	} catch (error) {

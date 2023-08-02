@@ -82,15 +82,16 @@ const updateClass = async (request, response) => {
 // Save class ID to user and update class participant list
 const classSignup = async (request, response) => {
 	let userId = request.user.user_id;
-	let classId = request.params.classId;
+	let classId = request.params.id;
 
 	try {
 		await User.findByIdAndUpdate(userId, { $addToSet: { savedClasses: classId } });
+		await Class.findByIdAndUpdate(classId, { $addToSet: { participantList: userId } });
 		response.status(201)
-		.json({ message: "Class saved to user profile successfully."});
+		response.json({ message: "Class saved to user profile successfully. Class participant list also updated."});
 	} catch (error) {
 		response.status(500)
-		.json({ error: "Failed to save class."});
+		response.json({ error: "Failed to save class."});
 	}
 };
 
