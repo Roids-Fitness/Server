@@ -15,6 +15,16 @@ let corsOptions = {
 
 app.use(cors(corsOptions));
 
+const helmet = require("helmet");
+app.use(helmet());
+app.use(helmet.permittedCrossDomainPolicies());
+app.use(helmet.referrerPolicy());
+app.use(helmet.contentSecurityPolicy({
+    directives:{
+        defaultSrc: ["self"]
+    }
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
 
