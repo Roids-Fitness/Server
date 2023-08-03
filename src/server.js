@@ -66,5 +66,5 @@ const usersRouter = require('./routes/users_routes');
 app.use("/user", usersRouter);
 
 module.exports = {
-	app, PORT, HOST
+	app, PORT
 };
