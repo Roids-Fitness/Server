@@ -7,6 +7,24 @@ const app = express();
 
 const PORT = process.env.PORT 
 
+const cors = require("cors");
+let corsOptions = {
+    origin: ["http://localhost:3000", "https://roids-fitness.netlify.app"],
+    optionSuccessStatus: 200
+}
+
+app.use(cors(corsOptions));
+
+const helmet = require("helmet");
+app.use(helmet());
+app.use(helmet.permittedCrossDomainPolicies());
+app.use(helmet.referrerPolicy());
+app.use(helmet.contentSecurityPolicy({
+    directives:{
+        defaultSrc: ["self"]
+    }
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
 
