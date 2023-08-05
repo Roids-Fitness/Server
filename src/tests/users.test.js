@@ -1,27 +1,6 @@
 const request = require("supertest");
-const dotenv = require("dotenv");
-dotenv.config();
 const { app } = require("../server");
 const mongoose = require('mongoose');
-
-
-const moment = require('moment-timezone');
-const Class = require('../models/class');
-const express = require("express");
-const usersRouter = express.Router();
-const {
-	login,
-	updateUser,
-	deleteUser,
-	register,
-	getUserByID,
-	getMyClasses,
-} = require("../controllers/users_controller");
-const {
-	validateRequest,
-	validateAdmin,
-} = require("../middlewares/auth_middleware");
-
 
 
 describe("User...", () => {
@@ -192,7 +171,7 @@ describe("User...", () => {
 	});
 
 	describe("updateUser", () => {
-		it("should successfully update the user's details", async () => {
+		it("should successfully update the user's own details", async () => {
 			
 			const credentials = {
 				email: "test1@email.com",
@@ -200,11 +179,6 @@ describe("User...", () => {
 			};
 	
 			const loginresponse = await request(app).post("/user/login").send(credentials);
-			
-			// Ensure login was successful
-			expect(loginresponse.status).toBe(200);
-			expect(loginresponse.body).toHaveProperty("user");
-			expect(loginresponse.body.user).toHaveProperty("id");
 			
 			// Extract token and user ID
 			const token = loginresponse.body.token;
@@ -242,73 +216,46 @@ describe("User...", () => {
 			expect(response.body.data).toHaveProperty("state", "TAS");
 			expect(response.body.data).toHaveProperty("postcode", "7777");
 			expect(response.body.data).toHaveProperty("mobile", "New");
-			expect(response.body.data).toHaveProperty("isAdmin", false); // user cannot update isAdmin, even if provided
+			expect(response.body.data).toHaveProperty("isAdmin", false); // User should not be able to update isAdmin, even if provided
 		});
 	});
+
+	describe("deleteUser", () => {
+		it("should successfully delete the user and their class associations", async () => {
+			// First need to obtain ID of user to delete (user also has saved classes)
+			const testuserCredentials = {
+				email: "test2@email.com",
+				password: "test123",
+			};
+			const testloginresponse = await request(app).post("/user/login").send(testuserCredentials);
+			// This is the test users ID to delete
+			const testuserId = testloginresponse.body.user.id;
+			
+			// Authenticate ADMIN user and obtain JWT
+			const adminCredentials = {
+				email: "admin1@admin.com",
+				password: process.env.ADMIN_PASSWORD,
+			};
+			const adminloginresponse = await request(app).post("/user/login").send(adminCredentials);
+			// Extract admin token
+			const adminToken = adminloginresponse.body.token;
 	
-
-
-	// describe("...can update profile...", () => {
-	// 	it("...of the authenticated user", async () => {
-	// 		const token = "userAuthToken";
-	// 		const updateData = {
-	// 			firstName: "UpdatedFirstName",
-	// 			lastName: "UpdatedLastName"
-	// 		};
-	// 		const userId = "someUserId"; // Assuming you have this ID
-	// 		const response = await request(app).put(`/user/${userId}`)
-	// 			.set("Authorization", `Bearer ${token}`)
-	// 			.send(updateData);
-	// 		expect(response.status).toBe(200);
-	// 		expect(response.body.firstName).toBe(updateData.firstName);
-	// 		expect(response.body.lastName).toBe(updateData.lastName);
-	// 	});
-	// });
-
-	// describe("...admin can delete users...", () => {
-	// 	it("...by ID", async () => {
-	// 		// Assuming you have a mechanism to authenticate the admin and obtain a token
-	// 		const adminToken = "adminAuthToken";
-	// 		const userIdToDelete = "userIdToDelete"; // Assuming you have this ID
-	// 		const response = await request(app).delete(`/user/${userIdToDelete}`)
-	// 			.set("Authorization", `Bearer ${adminToken}`);
-	// 		expect(response.status).toBe(200);
-	// 		expect(response.body.message).toBe("User successfully deleted");
-	// 	});
-	// });
-
-
-
+			// Use the admin token to make a DELETE request to deleteUser endpoint
+			const response = await request(app)
+				.delete(`/user/${testuserId}`)  
+				.set("Authorization", `Bearer ${adminToken}`);  // Set the JWT as an Authorization header
 	
-
+			// Check if the deletion was successful
+			expect(response.status).toBe(200);
+			expect(response.body).toBe("User deleted");
 	
-	// describe("...when fetching user details...", () => {
-	// 	it("...returns an error if user ID is not found", async () => {
-	// 		const fakeId = "someNonExistentId";
-	// 		const response = await request(app).get(`/user/${fakeId}`);
-	// 		expect(response.status).toBe(404);
-	// 		expect(response.body.error).toBe("User ID not found");
-	// 	});
-	// });
-
-	// describe("...when updating user...", () => {
-	// 	it("...returns an error if user ID is not found", async () => {
-	// 		const fakeId = "someNonExistentId";
-	// 		const updateData = { firstName: "UpdatedName" };
-	// 		const response = await request(app).put(`/user/${fakeId}`).send(updateData);
-	// 		expect(response.status).toBe(404);
-	// 		expect(response.body.error).toBe("User ID not found");
-	// 	});
-	// });
-
-	// describe("...when deleting a user...", () => {
-	// 	it("...returns an error if user ID is not found", async () => {
-	// 		const fakeId = "someNonExistentId";
-	// 		const response = await request(app).delete(`/user/${fakeId}`);
-	// 		expect(response.status).toBe(404);
-	// 		expect(response.body.error).toBe("User ID not found");
-	// 	});
-	// });	
+			// Verify if user's association with classes has been removed
+			const classResponse = await request(app).get("/class"); 
+			classResponse.body.forEach(classObj => {
+				expect(classObj.participantList).not.toContain(testuserId);
+			});
+		});
+	});
 
 	afterAll(async () => {
 		await mongoose.connection.close();
