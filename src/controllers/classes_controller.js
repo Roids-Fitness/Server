@@ -1,7 +1,11 @@
 const Class = require("../models/class");
 const User = require("../models/user");
 const moment = require("moment-timezone");
-const { checkForTimeOverlap } = require("../services/utilities");
+const {
+	checkForTimeOverlap,
+	handleError,
+	parseAndValidateDate,
+} = require("../services/utilities");
 
 // Retrieve all classes, or classes by a specific trainer if query parameter is provided
 const getAllClasses = async (request, response) => {
@@ -18,8 +22,7 @@ const getAllClasses = async (request, response) => {
 
 		response.send(classes);
 	} catch (error) {
-		console.error("Error while accessing data:\n" + error);
-		response.status(500).json({ error: "Error while retrieving classes" });
+		handleError(error, response);
 	}
 };
 
@@ -34,8 +37,7 @@ const getClassByID = async (request, response) => {
 			response.json({ error: "Class ID not found" });
 		}
 	} catch (error) {
-		console.error("Error while accessing data:\n" + error);
-		response.status(500).json({ error: "Internal Server Error" });
+		handleError(error, response);
 	}
 };
 
@@ -90,74 +92,50 @@ const createClass = async (request, response) => {
 			.status(201)
 			.json({ message: "Class successfully created", class: newClass });
 	} catch (error) {
-		console.error(error);
-		response.status(500).json({ error: "Internal Server Error" });
+		handleError(error, response);
 	}
 };
 
-// Update the class details using the given data i.e. Title, Description, Start/End time
+// Update the class details based on provided information. i.e. Title, Description, Start/End time
 // Any field in request.body can be used as only admin users will be able to update classes.
 const updateClassDetails = async (request, response) => {
-	try {
-		const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
+    try {
+        const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
 
-		let startTime, endTime;
-		if (startTimeStr) {
-			startTime = moment.tz(startTimeStr, "Australia/Brisbane").toDate();
-			if (isNaN(startTime.getTime())) {
-				return response.status(400).json({
-					error:
-						"Invalid startTime format. It must be a valid date. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00",
-				});
-			}
-		}
+        let startTime, endTime;
 
-		if (endTimeStr) {
-			endTime = moment.tz(endTimeStr, "Australia/Brisbane").toDate();
-			if (isNaN(endTime.getTime())) {
-				return response.status(400).json({
-					error:
-						"Invalid endTime format. It must be a valid date. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00",
-				});
-			}
-		}
+        // If startTime is provided, validate and parse it.
+        if (startTimeStr) {
+            startTime = parseAndValidateDate(startTimeStr, "startTime", "Australia/Brisbane");
+        }
 
-		// Check if endTime is after startTime if both are provided
-		if (startTime && endTime && endTime <= startTime) {
-			return response
-				.status(400)
-				.json({ error: "endTime must be after startTime." });
-		}
+        // If endTime is provided, validate and parse it.
+        if (endTimeStr) {
+            endTime = parseAndValidateDate(endTimeStr, "endTime", "Australia/Brisbane");
+        }
 
-		// Check for class time overlap only if both startTime and endTime are provided
-		if (startTime && endTime) {
-			const isOverlap = await checkForTimeOverlap(startTime, endTime);
-			if (isOverlap) {
-				return response
-					.status(400)
-					.json({ error: "Class time overlaps with an existing class." });
-			}
-		}
+        // Check if endTime is after startTime if both are provided.
+        if (startTime && endTime && endTime <= startTime) {
+            return response.status(400).json({ error: "endTime must be after startTime." });
+        }
 
-		let updatedClass = await Class.findByIdAndUpdate(
-			request.params.id,
-			request.body,
-			{ new: true }
-		);
+        // Check for class time overlap only if both startTime and endTime are provided.
+        if (startTime && endTime && await checkForTimeOverlap(startTime, endTime)) {
+            return response.status(400).json({ error: "Class time overlaps with an existing class." });
+        }
 
-		if (updatedClass) {
-			response.json({
-				message: "Class successfully updated!",
-				class: updatedClass,
-			});
-		} else {
-			response.status(404).json({ error: "Class ID not found" });
-		}
-	} catch (error) {
-		console.error("Error while accessing data:\n" + error);
-		response.status(500).json({ error: "Internal Server Error" });
-	}
+        let updatedClass = await Class.findByIdAndUpdate(request.params.id, request.body, { new: true });
+
+        if (updatedClass) {
+            response.json({ message: "Class successfully updated!", class: updatedClass });
+        } else {
+            response.status(404).json({ error: "Class ID not found" });
+        }
+    } catch (error) {
+        handleError(error, response);
+    }
 };
+
 
 // Allow a user to sign up for a class, updating both the user and class records.
 const classSignup = async (request, response) => {
@@ -180,8 +158,7 @@ const classSignup = async (request, response) => {
 				"Class saved to user profile successfully. Class participant list also updated.",
 		});
 	} catch (error) {
-		console.error("Error while accessing data:\n" + error);
-		response.status(500).json({ error: "Failed to save class." });
+		handleError(error, response);
 	}
 };
 
@@ -202,10 +179,7 @@ const deleteClass = async (request, response) => {
 			response.status(404).json({ error: "Class ID not found" });
 		}
 	} catch (error) {
-		console.error("Error while accessing data:\n" + error);
-		response.status(500).json({
-			error: "An error occurred while deleting the class.",
-		});
+		handleError(error, response);
 	}
 };
 

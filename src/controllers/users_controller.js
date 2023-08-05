@@ -2,6 +2,7 @@ const User = require("../models/user");
 const Class = require("../models/class");
 const bcrypt = require("bcrypt");
 const { createToken } = require("../services/auth_service");
+const { handleError } = require("../services/utilities");
 
 const register = async (request, response) => {
 	try {
@@ -66,8 +67,7 @@ const register = async (request, response) => {
 			},
 		});
 	} catch (error) {
-		console.error(error);
-		response.status(500).json({ message: "Signup failed" });
+		handleError(error, response)
 	}
 };
 
@@ -109,8 +109,7 @@ const login = async (request, response) => {
 				.json({ error: "Authentication failed. Wrong email or password." });
 		}
 	} catch (error) {
-		console.error(error);
-		response.status(500).json({ error: "Login failed" });
+		handleError(error, response)
 	}
 };
 
@@ -119,8 +118,7 @@ const getAllUsers = async (request, response) => {
 		const users = await User.find();
 		response.send(users);
 	} catch (error) {
-		console.error("Error while accessing data:", error.message);
-		response.status(500).json({ error: "Error while retrieving classes" });
+		handleError(error, response)
 	}
 };
 
@@ -137,8 +135,7 @@ const getUserByID = async (request, response) => {
 			response.json({ error: "User ID not found" });
 		}
 	} catch (error) {
-		console.error("Error while accessing data:", error.message);
-		response.status(500).json({ error: "Error while retrieving user" });
+		handleError(error, response)
 	}
 };
 
@@ -150,10 +147,7 @@ const getMyClasses = async (request, response) => {
 		);
 		response.send(user.savedClasses);
 	} catch (error) {
-		console.error("Error while accessing data:", error.message);
-		response
-			.status(500)
-			.json({ error: "Error while retrieving saved classes" });
+		handleError(error, response)
 	}
 };
 
@@ -176,11 +170,8 @@ const updateUser = async (request, response) => {
 		}
 	} catch (error) {
 		console.error("Error while accessing data:\n" + error);
-		response.status(500).send({
-			message: "An error occurred while updating the user",
-			error: error.message,
-		});
-	}
+		handleError(error, response)
+	};
 };
 
 const deleteUser = async (request, response) => {
@@ -200,11 +191,7 @@ const deleteUser = async (request, response) => {
 			response.status(404).json({ error: "User ID not found" });
 		}
 	} catch (error) {
-		console.error("Error while accessing data:\n" + error);
-		response.status(500).send({
-			message: "An error occurred while deleting the user",
-			error: error.message,
-		});
+		handleError(error, response)
 	}
 };
 
