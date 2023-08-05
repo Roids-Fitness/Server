@@ -154,6 +154,11 @@ const getMyClasses = async (request, response) => {
 // Allows updating a user's details based on their ID
 const updateUser = async (request, response) => {
 	try {
+		// Remove isAdmin and savedClasses from request.body if they exist
+		// User not allowed to update isAdmin status or savedClasses list 
+		delete request.body.isAdmin;
+		delete request.body.savedClasses;
+
 		// params.id retrieved from search parameter
 		const updatedUser = await User.findByIdAndUpdate(
 			request.params.id,
