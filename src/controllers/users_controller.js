@@ -91,7 +91,6 @@ const login = async (request, response) => {
         email,
         firstName,
         lastName,
-        savedClasses,
       });
       response.json({
         message: "Login success!",
