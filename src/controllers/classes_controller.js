@@ -1,6 +1,7 @@
 const Class = require("../models/class");
 const User = require("../models/user");
 const moment = require("moment-timezone");
+const { checkForTimeOverlap } = require("../services/utilities");
 
 // Retrieve all classes, or classes by a specific trainer if query parameter is provided
 const getAllClasses = async (request, response) => {
@@ -22,7 +23,7 @@ const getAllClasses = async (request, response) => {
 	}
 };
 
-// Retrieve a class by its ID, with class ID found in URL. 
+// Retrieve a class by its ID, with class ID found in URL.
 const getClassByID = async (request, response) => {
 	try {
 		const foundClass = await Class.findById(request.params.id);
@@ -45,23 +46,19 @@ const createClass = async (request, response) => {
 
 		// Validate necessary fields
 		if (!title || !startTime || !endTime) {
-			return response
-				.status(400)
-				.json({
-					error: "Missing required fields: title, startTime, endTime.",
-				});
+			return response.status(400).json({
+				error: "Missing required fields: title, startTime, endTime.",
+			});
 		}
 
 		// Validate date format
 		const startDate = moment.tz(startTime, "Australia/Brisbane").toDate();
 		const endDate = moment.tz(endTime, "Australia/Brisbane").toDate();
 		if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-			return response
-				.status(400)
-				.json({
-					error:
-						"Invalid date format. startTime and endTime must be valid dates. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00",
-				});
+			return response.status(400).json({
+				error:
+					"Invalid date format. startTime and endTime must be valid dates. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00",
+			});
 		}
 
 		// Ensure that the class end time is after the start time
@@ -72,14 +69,13 @@ const createClass = async (request, response) => {
 		}
 
 		// Ensure there's no overlap with other classes
-		const overlapClass = await Class.findOne({
-			$or: [{ startTime: { $lte: endDate }, endTime: { $gte: startDate } }],
-		});
-		if (overlapClass) {
+		const isOverlap = await checkForTimeOverlap(startDate, endDate);
+		if (isOverlap) {
 			return response
 				.status(400)
 				.json({ error: "Class time overlaps with an existing class." });
 		}
+
 		// Create new class instance and save to database
 		let newClass = new Class({
 			title: title,
@@ -135,11 +131,8 @@ const updateClassDetails = async (request, response) => {
 
 		// Check for class time overlap only if both startTime and endTime are provided
 		if (startTime && endTime) {
-			const overlapClass = await Class.findOne({
-				$or: [{ startTime: { $lte: endTime }, endTime: { $gte: startTime } }],
-			});
-
-			if (overlapClass) {
+			const isOverlap = await checkForTimeOverlap(startTime, endTime);
+			if (isOverlap) {
 				return response
 					.status(400)
 					.json({ error: "Class time overlaps with an existing class." });
@@ -211,7 +204,7 @@ const deleteClass = async (request, response) => {
 	} catch (error) {
 		console.error("Error while accessing data:\n" + error);
 		response.status(500).json({
-			error: "An error occurred while deleting the class."
+			error: "An error occurred while deleting the class.",
 		});
 	}
 };
