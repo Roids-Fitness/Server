@@ -219,7 +219,8 @@ describe("User...", () => {
 				suburb: "New",
 				state: "TAS",
 				postcode: "7777",
-				mobile: "New"
+				mobile: "New",
+				isAdmin: true
 			};
 			
 			// Use the token to make a request to updateUser endpoint
@@ -241,6 +242,7 @@ describe("User...", () => {
 			expect(response.body.data).toHaveProperty("state", "TAS");
 			expect(response.body.data).toHaveProperty("postcode", "7777");
 			expect(response.body.data).toHaveProperty("mobile", "New");
+			expect(response.body.data).toHaveProperty("isAdmin", false); // user cannot update isAdmin, even if provided
 		});
 	});
 	
