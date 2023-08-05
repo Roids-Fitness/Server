@@ -113,14 +113,6 @@ const login = async (request, response) => {
 	}
 };
 
-const getAllUsers = async (request, response) => {
-	try {
-		const users = await User.find();
-		response.send(users);
-	} catch (error) {
-		handleError(error, response)
-	}
-};
 
 const getUserByID = async (request, response) => {
 	try {
