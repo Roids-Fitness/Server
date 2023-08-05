@@ -119,6 +119,7 @@ const login = async (request, response) => {
 	}
 };
 
+
 // Fetches user details based on their ID
 const getUserByID = async (request, response) => {
 	try {

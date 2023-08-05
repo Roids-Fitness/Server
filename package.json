@@ -6,13 +6,14 @@
   "scripts": {
     "start": "NODE_ENV=production node src/index.js",
     "dev": "NODE_ENV=development nodemon src/index.js",
+    "dev-test": "NODE_ENV=test nodemon src/index.js",
     "test": "npm run wipe-and-seed-test && NODE_ENV=test jest",
     "test-cc": "npm run wipe-and-seed-test && NODE_ENV=test jest --coverage",
     "seed": "SEED=true NODE_ENV=development node src/seed.js",
     "wipe": "WIPE=true NODE_ENV=development node src/seed.js",
     "wipe-and-seed": "WIPE=true SEED=true NODE_ENV=development node src/seed.js",
     "seed-production": "SEED=true NODE_ENV=production node src/seed.js",
-	"wipe-and-seed-test": "WIPE=true SEED=true NODE_ENV=test node src/seed.js"
+    "wipe-and-seed-test": "WIPE=true SEED=true NODE_ENV=test node src/seed.js"
   },
   "keywords": [],
   "author": "Tony Le Huynh, Johnson Wang",
@@ -28,7 +29,7 @@
     "mongoose": "^7.4.0"
   },
   "devDependencies": {
-    "jest": "^29.6.1",
+    "jest": "^29.6.2",
     "nodemon": "^3.0.1",
     "supertest": "^6.3.3"
   },

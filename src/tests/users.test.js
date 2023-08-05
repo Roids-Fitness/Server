@@ -1,10 +1,12 @@
 const request = require("supertest");
+const dotenv = require("dotenv");
+dotenv.config();
 const { app } = require("../server");
-const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+
+
 const moment = require('moment-timezone');
 const Class = require('../models/class');
-jest.mock('jsonwebtoken');
-jest.mock('../models/class');
 const express = require("express");
 const usersRouter = express.Router();
 const {
@@ -19,6 +21,8 @@ const {
 	validateRequest,
 	validateAdmin,
 } = require("../middlewares/auth_middleware");
+
+
 
 describe("User...", () => {
 
@@ -43,7 +47,7 @@ describe("User...", () => {
 			expect(response.body.error).toBe("Email and password must be provided");
 		});
 
-		it("...cannot sign up if the email address already exists in the database", async () => {
+		it("...cannot register if the email address already exists in the database", async () => {
 			const existingUser = {
 				email: "testuser@test.com",
 				password: "testpassword",
@@ -53,6 +57,8 @@ describe("User...", () => {
 			expect(response.status).toBe(409);
 			expect(response.body.error).toBe("Email already registered");
 		});
+
+		
 
 		it("...should be provided with valid user details on successful registration", async () => {
 			const newUserDetails = {
@@ -80,52 +86,165 @@ describe("User...", () => {
 
 	})
 
-	// describe("...can log in...", () => {
-	// 	it("...with valid credentials", async () => {
-	// 		const credentials = {
-	// 			email: "test@test.com",
-	// 			password: "securepassword",
-	// 		};
-	// 		const response = await request(app).post("/user/login").send(credentials);
-	// 		expect(response.status).toBe(200);
-	// 		expect(response.body.message).toBe("Login successful!");
-	// 		// Assuming the login route returns a token, you could check for its existence
-	// 		expect(response.body.token).toBeDefined();
-	// 	});
+	describe("...can log in...", () => {
+		it("...with valid credentials and returns JWT token", async () => {
+			const credentials = {
+				email: "testuser@test.com",
+				password: "testpassword",
+			};
+			const response = await request(app).post("/user/login").send(credentials);
+			console.log(response.body);
 
-	// 	it("...cannot log in with incorrect credentials", async () => {
-	// 		const wrongCredentials = {
-	// 			email: "test@test.com",
-	// 			password: "wrongpassword",
-	// 		};
-	// 		const response = await request(app).post("/user/login").send(wrongCredentials);
-	// 		expect(response.status).toBe(401);
-	// 		expect(response.body.error).toBe("Authentication failed");
-	// 	});
+			expect(response.status).toBe(200);
+			expect(response.body.message).toBe("Login success!");
+			expect(response.body.token).toBeDefined();
 
-	// });
+		});
 
-	// describe("...can view profile...", () => {
-	// 	it("...of the authenticated user", async () => {
-	// 		// Assuming you have a mechanism to authenticate the user and obtain a token
-	// 		const token = "userAuthToken";
-	// 		const response = await request(app).get("/user/myaccount")
-	// 			.set("Authorization", `Bearer ${token}`);
-	// 		expect(response.status).toBe(200);
-	// 		expect(response.body.email).toBe("test@test.com");
-	// 	});
-	// });
 
-	// describe("...can view saved classes...", () => {
-	// 	it("...of the authenticated user", async () => {
-	// 		const token = "userAuthToken";
-	// 		const response = await request(app).get("/user/myclasses")
-	// 			.set("Authorization", `Bearer ${token}`);
-	// 		expect(response.status).toBe(200);
-	// 		// Assuming you want to check if the response is an array
-	// 		expect(Array.isArray(response.body)).toBe(true);
-	// 	});
-	// });
+
+		it("...cannot log in with incorrect credentials", async () => {
+			const wrongCredentials = {
+				email: "testuser@test.com",
+				password: "wrongpassword",
+			};
+			const response = await request(app).post("/user/login").send(wrongCredentials);
+			expect(response.status).toBe(401);
+			expect(response.body.error).toBe("Authentication failed. Wrong email or password.");
+		});
+
+	});
+
+	describe("...during login...", () => {
+		it("...cannot login without an email or password", async () => {
+			const incompleteCredentials = {
+				email: "test@test.com",
+			};
+			const response = await request(app).post("/user/login").send(incompleteCredentials);
+			expect(response.status).toBe(400);
+			expect(response.body.error).toBe("Email and password are required to login");
+		});
+	});
+
+	describe("getUserByID", () => {
+		it("should return user details without admin status", async () => {
+	
+			const credentials = {
+				email: "testuser@test.com",
+				password: "testpassword",
+			};
+	
+			const loginresponse = await request(app).post("/user/login").send(credentials);
+	
+			// Ensure login was successful
+			expect(loginresponse.status).toBe(200);
+			expect(loginresponse.body).toHaveProperty("user");
+			expect(loginresponse.body.user).toHaveProperty("id");
+	
+			// Extract token
+			const token = loginresponse.body.token;
+	
+			// Use the token to make a request to getUserByID endpoint
+			const response = await request(app)
+				.get("/user/myaccount")  // replace this with your actual endpoint for getUserByID
+				.set("Authorization", `Bearer ${token}`);  // set the JWT as an Authorization header
+	
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("email");
+			expect(response.body).toHaveProperty("password"); 
+			expect(response.body).toHaveProperty("savedClasses");   
+			expect(response.body).not.toHaveProperty("isAdmin");
+		});
+	});
+
+
+	describe("getMyClasses", () => {
+		it("Can view saved classes for the user.", async () => {
+	
+			const credentials = {
+				email: "test1@email.com",
+				password: "test123",
+			};
+	
+			const loginresponse = await request(app).post("/user/login").send(credentials);
+	
+			// Ensure login was successful
+			expect(loginresponse.status).toBe(200);
+			expect(loginresponse.body).toHaveProperty("user");
+			expect(loginresponse.body.user).toHaveProperty("id");
+	
+			// Extract token
+			const token = loginresponse.body.token;
+	
+			// Use the token to make a request to getUserByID endpoint
+			const response = await request(app)
+			.get("/user/myclasses")  // replace this with your actual endpoint for getUserByID
+			.set("Authorization", `Bearer ${token}`);  // set the JWT as an Authorization header
+
+			expect(response.status).toBe(200);
+			expect(Array.isArray(response.body)).toBe(true);
+			expect(response.body[0]).toHaveProperty("title");
+			expect(response.body[0]).toHaveProperty("description");
+			expect(response.body[0]).toHaveProperty("startTime");
+			expect(response.body[0]).toHaveProperty("endTime");
+			expect(response.body[0]).toHaveProperty("trainer");
+		});
+	});
+
+	describe("updateUser", () => {
+		it("should successfully update the user's details", async () => {
+			
+			const credentials = {
+				email: "test1@email.com",
+				password: "test123",
+			};
+	
+			const loginresponse = await request(app).post("/user/login").send(credentials);
+			
+			// Ensure login was successful
+			expect(loginresponse.status).toBe(200);
+			expect(loginresponse.body).toHaveProperty("user");
+			expect(loginresponse.body.user).toHaveProperty("id");
+			
+			// Extract token and user ID
+			const token = loginresponse.body.token;
+			const userId = loginresponse.body.user.id;
+			
+			// Update data
+			const updatedData = {
+				firstName: "New",
+				lastName: "New",
+				email: "newtest@email.com",
+				street: "New",
+				suburb: "New",
+				state: "TAS",
+				postcode: "7777",
+				mobile: "New"
+			};
+			
+			// Use the token to make a request to updateUser endpoint
+			const response = await request(app)
+				.put(`/user/${userId}`) 
+				.set("Authorization", `Bearer ${token}`)  // set the JWT as an Authorization header
+				.send(updatedData);
+			
+			// Check if the update was successful
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "User updated successfully");
+			
+			// Check the updated data
+			expect(response.body.data).toHaveProperty("firstName", "New");
+			expect(response.body.data).toHaveProperty("lastName", "New");
+			expect(response.body.data).toHaveProperty("email", "newtest@email.com");
+			expect(response.body.data).toHaveProperty("street", "New");
+			expect(response.body.data).toHaveProperty("suburb", "New");
+			expect(response.body.data).toHaveProperty("state", "TAS");
+			expect(response.body.data).toHaveProperty("postcode", "7777");
+			expect(response.body.data).toHaveProperty("mobile", "New");
+		});
+	});
+	
+
 
 	// describe("...can update profile...", () => {
 	// 	it("...of the authenticated user", async () => {
@@ -156,28 +275,9 @@ describe("User...", () => {
 	// 	});
 	// });
 
-	// describe("...during sign up...", () => {
-	// 	it("...cannot register with an already used email address", async () => {
-	// 		const existingUser = {
-	// 			email: "test@test.com",
-	// 			password: "securepassword",
-	// 		};
-	// 		const response = await request(app).post("/user/register").send(existingUser);
-	// 		expect(response.status).toBe(409);
-	// 		expect(response.body.error).toBe("Email already registered");
-	// 	});
-	// });
 
-	// describe("...during login...", () => {
-	// 	it("...cannot login without an email or password", async () => {
-	// 		const incompleteCredentials = {
-	// 			email: "test@test.com",
-	// 		};
-	// 		const response = await request(app).post("/user/login").send(incompleteCredentials);
-	// 		expect(response.status).toBe(400);
-	// 		expect(response.body.error).toBe("Email and password are required to login");
-	// 	});
-	// });
+
+	
 
 	
 	// describe("...when fetching user details...", () => {
@@ -207,6 +307,11 @@ describe("User...", () => {
 	// 		expect(response.body.error).toBe("User ID not found");
 	// 	});
 	// });	
-	
+
+	afterAll(async () => {
+		await mongoose.connection.close();
+	  });
 
 });
+
+
