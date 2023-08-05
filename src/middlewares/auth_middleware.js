@@ -1,39 +1,56 @@
-const { verifyToken } = require('../services/auth_service');
-const User = require('../models/user');
+// Middlewares for validating the JWT for authentication, as well as checking if JWT is from an admin user
 
+const { verifyToken } = require("../services/auth_service");
+const User = require("../models/user");
+
+
+// Check for JWT to authenticate user
 const validateRequest = async (request, response, next) => {
 	try {
-	  if (request.headers.authorization) {
-		const token = request.headers.authorization.split(' ')[1];
-		if (!token) {
-		  return response.status(401).json({ error: 'A token is required for authentication' });
-		}
-		const decoded = await verifyToken(token);
-		request.user = decoded;
-		next();
-	  } else {
-		return response.status(401).json({ error: 'Not authenticated for this action. Please provide valid token' });
-	  }
-	} catch (error) {
-		if (error.name === 'JsonWebTokenError' || error instanceof TypeError) {
-			return response.status(401).json({ error: 'Invalid token. Please provide a valid token for authentication.' });
+		if (request.headers.authorization) {
+			const token = request.headers.authorization.split(" ")[1];
+			if (!token) {
+				return response
+					.status(401)
+					.json({ error: "A token is required for authentication" });
 			}
-	  	next(error);
+			const decoded = await verifyToken(token);
+			request.user = decoded;
+			next();
+		} else {
+			return response
+				.status(401)
+				.json({
+					error:
+						"Not authenticated for this action. Please provide valid token",
+				});
+		}
+	} catch (error) {
+		if (error.name === "JsonWebTokenError" || error instanceof TypeError) {
+			return response
+				.status(401)
+				.json({
+					error:
+						"Invalid token. Please provide a valid token for authentication.",
+				});
+		}
+		next(error);
 	}
-  };
-  
+};
 
+// Check if user is an admin
 const validateAdmin = async (request, response, next) => {
 	try {
-	  let validatedUser = await User.findById(request.user.user_id);
-	  if (!validatedUser.isAdmin) { 
-		return response.status(403).json({ error: 'Not authorized. User is not an admin' });
-	  }
-	  next();
+		let validatedUser = await User.findById(request.user.user_id);
+		if (!validatedUser.isAdmin) {
+			return response
+				.status(403)
+				.json({ error: "Not authorized. User is not an admin" });
+		}
+		next();
 	} catch (error) {
-	  next(error);
+		next(error);
 	}
-  };
-  
+};
 
 module.exports = { validateRequest, validateAdmin };

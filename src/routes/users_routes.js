@@ -1,7 +1,18 @@
-const express = require('express');
+const express = require("express");
 const usersRouter = express.Router();
-const {getAllUsers, login, updateUser, deleteUser, register, getUserByID, getMyClasses} = require('../controllers/users_controller');
-const {validateRequest, validateAdmin} = require('../middlewares/auth_middleware');
+const {
+	getAllUsers,
+	login,
+	updateUser,
+	deleteUser,
+	register,
+	getUserByID,
+	getMyClasses,
+} = require("../controllers/users_controller");
+const {
+	validateRequest,
+	validateAdmin,
+} = require("../middlewares/auth_middleware");
 
 // Public routes (No authentication required)
 usersRouter.post("/register", register);

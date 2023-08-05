@@ -1,8 +1,7 @@
-const request = require('supertest');
-const {app} = require("../server");
+const request = require("supertest");
+const { app } = require("../server");
 
 describe("Has a homepage...", () => {
-
 	it("...it responds with status 200.", async () => {
 		const response = await request(app).get("/");
 		expect(response.statusCode).toEqual(200);
@@ -10,15 +9,13 @@ describe("Has a homepage...", () => {
 
 	it("...it responds wtih a JSON object", async () => {
 		const response = await request(app).get("/");
-		const responseBodyDataType = typeof(response.body);
+		const responseBodyDataType = typeof response.body;
 
 		expect(responseBodyDataType).toEqual("object");
 	});
-})
-
+});
 
 describe("Classes...", () => {
-	
 	describe("...can be added...", () => {
 		// expect an object on the response with class data
 	});
@@ -33,24 +30,19 @@ describe("Classes...", () => {
 
 	describe("...can be deleted...", () => {
 		// expect that class will be deleted
-	})
-
-
-})
+	});
+});
 
 describe("User...", () => {
-
 	describe("...can sign up...", () => {
 		it("...with a valid email address and password", async () => {
 			// expect an object on the response with user data
-			const response = (await request(app)
-			.post("/users/signup"))
-			.send({
-				email: "test", 
-				password: "test"
+			const response = (await request(app).post("/users/signup")).send({
+				email: "test",
+				password: "test",
 			});
 
-			expect(response.body).toEqual({message:"Sign up success!"});
+			expect(response.body).toEqual({ message: "Sign up success!" });
 		});
 	});
 
