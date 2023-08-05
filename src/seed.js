@@ -1,4 +1,4 @@
-// To seed local database with users and classes, run npm run seed-test
+// This script seeds the database with sample users and classes for testing and development purposes.
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -8,7 +8,7 @@ const Class = require("./models/class");
 const moment = require("moment-timezone");
 const bcrypt = require("bcrypt");
 
-// MongoDB database URL
+// Determine the appropriate database URL based on the environment
 let databaseURL = "";
 switch (process.env.NODE_ENV.toLowerCase()) {
 	case "production":
@@ -24,7 +24,7 @@ switch (process.env.NODE_ENV.toLowerCase()) {
 		console.error("Wrong environment mode. Database cannot connect.");
 }
 
-// Connect to the database
+// Main function to handle the seeding process
 async function seedDatabase() {
 	try {
 		await mongoose.connect(databaseURL);
@@ -64,7 +64,7 @@ async function seedDatabase() {
 // Call the seedDatabase function to start the seeding process
 seedDatabase();
 
-// Seeding function for users (with two admins)
+// Function to seed users with predefined data, including admin accounts
 async function seedUsers() {
 	try {
 		const saltRounds = 10;
@@ -142,7 +142,7 @@ async function seedUsers() {
 	}
 }
 
-// Seeding function for classes
+// Function to generate and seed random class data for variety
 async function seedClasses() {
 	try {
 		const trainerNames = [
@@ -245,7 +245,7 @@ async function seedClasses() {
 	}
 }
 
-// Add savedClasses to a test user
+// Assign some classes to specific test users for relation simulation
 async function addSavedClassesToTestUser() {
 	try {
 		const yogaClass = await Class.findOne({ title: "Yoga Class" });
@@ -264,7 +264,7 @@ async function addSavedClassesToTestUser() {
 	}
 }
 
-// Add participantList to classes
+// Populate participant lists for specific classes with users
 async function addParticipantListToClass() {
 	try {
 		const yogaClass = await Class.findOne({ title: "Yoga Class" });

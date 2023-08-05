@@ -7,7 +7,7 @@ const {
 	parseAndValidateDate,
 } = require("../services/utilities");
 
-// Retrieve all classes, or classes by a specific trainer if query parameter is provided
+// Retrieve classes. If a trainer name is provided as a query parameter, it filters classes by that trainer.
 const getAllClasses = async (request, response) => {
 	try {
 		let classes;
@@ -26,7 +26,7 @@ const getAllClasses = async (request, response) => {
 	}
 };
 
-// Retrieve a class by its ID, with class ID found in URL.
+// Fetch a specific class using the class ID provided in the request URL.
 const getClassByID = async (request, response) => {
 	try {
 		const foundClass = await Class.findById(request.params.id);
@@ -41,7 +41,7 @@ const getClassByID = async (request, response) => {
 	}
 };
 
-// Create a new class with given details
+// Create a new class. The function validates date and time, checks for overlaps, and then adds the new class to the database.
 const createClass = async (request, response) => {
 	try {
 		const { title, startTime, endTime, trainer, description } = request.body;
@@ -96,8 +96,8 @@ const createClass = async (request, response) => {
 	}
 };
 
-// Update the class details based on provided information. i.e. Title, Description, Start/End time
-// Any field in request.body can be used as only admin users will be able to update classes.
+// Update details of an existing class identified by its ID. This function supports partial updates, 
+// so only fields provided in the request body will be updated.
 const updateClassDetails = async (request, response) => {
     try {
         const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
@@ -137,7 +137,8 @@ const updateClassDetails = async (request, response) => {
 };
 
 
-// Allow a user to sign up for a class, updating both the user and class records.
+// Allow a user (identified by the JWT) to sign up for a class (identified by its ID). 
+// This updates both the user's saved classes list and the class's participant list.
 const classSignup = async (request, response) => {
 	// User ID retrieved from JWT
 	let userId = request.user.user_id;
@@ -162,7 +163,7 @@ const classSignup = async (request, response) => {
 	}
 };
 
-// Delete a class based on the given class ID
+// Delete a class based on its ID and also update all user records to remove this class from their saved lists.
 const deleteClass = async (request, response) => {
 	try {
 		const classToDelete = await Class.findByIdAndDelete(request.params.id);

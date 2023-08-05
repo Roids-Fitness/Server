@@ -18,6 +18,7 @@ const UserSchema = mongoose.Schema({
 	postcode: String,
 	mobile: String,
 	isAdmin: Boolean,
+	// List of classes the user has signed up for. Each class is referenced by its ID
 	savedClasses: [{ type: mongoose.Types.ObjectId, ref: "Class" }],
 });
 

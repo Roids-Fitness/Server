@@ -7,14 +7,15 @@ const app = express();
 
 const PORT = process.env.PORT;
 
+// Configure Cross-Origin Resource Sharing (CORS) settings
 const cors = require("cors");
 let corsOptions = {
 	origin: ["http://localhost:3000", "https://roids-fitness.netlify.app"],
 	optionSuccessStatus: 200,
 };
-
 app.use(cors(corsOptions));
 
+// Setup security-related HTTP headers using Helmet.js
 const helmet = require("helmet");
 app.use(helmet());
 app.use(helmet.permittedCrossDomainPolicies());
@@ -27,9 +28,12 @@ app.use(
 	})
 );
 
+// Middleware to parse incoming requests with JSON payloads
 app.use(express.json());
+// Middleware to parse incoming requests with URL-encoded payloads
 app.use(express.urlencoded({ extended: true }));
 
+// Determine the appropriate database URL based on the environment
 let databaseURL = "";
 switch (process.env.NODE_ENV.toLowerCase()) {
 	case "production":
@@ -45,8 +49,8 @@ switch (process.env.NODE_ENV.toLowerCase()) {
 		console.error("Wrong environment mode. Database cannot connect.");
 }
 
+// Import and use the database connection utility
 const { databaseConnector } = require("./database");
-
 databaseConnector(databaseURL)
 	.then(() => {
 		console.log("Connected to database!");
@@ -56,12 +60,14 @@ databaseConnector(databaseURL)
 		console.log(error);
 	});
 
+// Root route for the API
 app.get("/", (request, response) => {
 	response.json({
 		message: "This is the homepage.",
 	});
 });
 
+// Health-check route to get the status of the database
 app.get("/databaseHealth", (request, response) => {
 	let databaseState = mongoose.connection.readyState;
 	let databaseName = mongoose.connection.name;
@@ -76,9 +82,9 @@ app.get("/databaseHealth", (request, response) => {
 	});
 });
 
+// Import and use routes for handling classes and users
 const classesRouter = require("./routes/classes_routes");
 app.use("/class", classesRouter);
-
 const usersRouter = require("./routes/users_routes");
 app.use("/user", usersRouter);
 

@@ -4,8 +4,10 @@ const bcrypt = require("bcrypt");
 const { createToken } = require("../services/auth_service");
 const { handleError } = require("../services/utilities");
 
+// Handles the registration process of a new user
 const register = async (request, response) => {
 	try {
+		// Destructure user details from the request
 		const {
 			firstName,
 			lastName,
@@ -18,22 +20,23 @@ const register = async (request, response) => {
 			mobile,
 		} = request.body;
 
-		// Check if email and password are provided
+		// Ensure email and password are provided
 		if (!email || !password) {
 			return response
 				.status(400)
-				.json({ message: "Email and password must be provided" });
+				.json({ error: "Email and password must be provided" });
 		}
 
-		// Check if the email is already registered
+		// Ensure uniqueness of email
 		const existingUser = await User.findOne({ email });
 		if (existingUser) {
-			return response.status(409).json({ message: "Email already registered" });
+			return response.status(409).json({ error: "Email already registered" });
 		}
 
-		// Hash the password before saving
+		// Encrypt the password for security
 		const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
 
+		// Create a new user instance and save it to the database
 		const newUser = new User({
 			firstName,
 			lastName,
@@ -50,8 +53,10 @@ const register = async (request, response) => {
 
 		await newUser.save();
 
+		// Generate JWT token for the new user
 		const token = createToken(newUser._id);
 
+		// Respond with success message and user details
 		response.json({
 			message: "Signup success!",
 			user: {
@@ -67,10 +72,11 @@ const register = async (request, response) => {
 			},
 		});
 	} catch (error) {
-		handleError(error, response)
+		handleError(error, response);
 	}
 };
 
+// Handles user login and token generation
 const login = async (request, response) => {
 	try {
 		const { email, password } = request.body;
@@ -109,16 +115,16 @@ const login = async (request, response) => {
 				.json({ error: "Authentication failed. Wrong email or password." });
 		}
 	} catch (error) {
-		handleError(error, response)
+		handleError(error, response);
 	}
 };
 
-
+// Fetches user details based on their ID
 const getUserByID = async (request, response) => {
 	try {
 		// user_id retrieved from user object
 		const foundUser = await User.findById(request.user.user_id).select(
-			"-isAdmin"
+			"-isAdmin" // Don't return admin status due to security
 		);
 		if (foundUser) {
 			response.json(foundUser);
@@ -127,10 +133,11 @@ const getUserByID = async (request, response) => {
 			response.json({ error: "User ID not found" });
 		}
 	} catch (error) {
-		handleError(error, response)
+		handleError(error, response);
 	}
 };
 
+// Retrieves classes that the user has signed up for
 const getMyClasses = async (request, response) => {
 	try {
 		// user_id retrieved from user object
@@ -139,10 +146,11 @@ const getMyClasses = async (request, response) => {
 		);
 		response.send(user.savedClasses);
 	} catch (error) {
-		handleError(error, response)
+		handleError(error, response);
 	}
 };
 
+// Allows updating a user's details based on their ID
 const updateUser = async (request, response) => {
 	try {
 		// params.id retrieved from search parameter
@@ -162,10 +170,11 @@ const updateUser = async (request, response) => {
 		}
 	} catch (error) {
 		console.error("Error while accessing data:\n" + error);
-		handleError(error, response)
-	};
+		handleError(error, response);
+	}
 };
 
+// Deletes a user and also removes their association with any classes they signed up for
 const deleteUser = async (request, response) => {
 	try {
 		// params.id retrieved from search parameter
@@ -183,12 +192,11 @@ const deleteUser = async (request, response) => {
 			response.status(404).json({ error: "User ID not found" });
 		}
 	} catch (error) {
-		handleError(error, response)
+		handleError(error, response);
 	}
 };
 
 module.exports = {
-	getAllUsers,
 	register,
 	login,
 	updateUser,

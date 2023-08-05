@@ -14,17 +14,23 @@ const {
 } = require("../middlewares/auth_middleware");
 
 // Public routes (No authentication required)
+// Retrieve all classes
 classesRouter.get("/", getAllClasses);
+// Retrieve a specific class by ID
 classesRouter.get("/:id", getClassByID);
 
-// Routes that require user authentication
+// Apply user authentication middleware for the routes that follow (requires user authentication)
 classesRouter.use(validateRequest);
+// Update class details (requires admin authorization)
 classesRouter.put("/update/:id", validateAdmin, updateClassDetails);
+// Signup for a class
 classesRouter.put("/:id", classSignup);
 
-// Routes that require both user and admin authentication
+// Apply admin authentication middleware for the routes that follow (requires admin authorization)
 classesRouter.use(validateAdmin);
+// Create a new class
 classesRouter.post("/", createClass);
+// Delete a specific class by ID
 classesRouter.delete("/:id", deleteClass);
 
 module.exports = classesRouter;

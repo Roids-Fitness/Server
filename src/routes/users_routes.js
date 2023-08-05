@@ -1,7 +1,6 @@
 const express = require("express");
 const usersRouter = express.Router();
 const {
-	getAllUsers,
 	login,
 	updateUser,
 	deleteUser,
@@ -15,18 +14,23 @@ const {
 } = require("../middlewares/auth_middleware");
 
 // Public routes (No authentication required)
+// Register a new user
 usersRouter.post("/register", register);
+// User login
 usersRouter.post("/login", login);
 
-// Routes that require user authentication
+// Apply user authentication middleware for the routes that follow
 usersRouter.use(validateRequest);
+// Retrieve details of the authenticated user
 usersRouter.get("/myaccount", getUserByID);
+// Retrieve classes saved by the authenticated user
 usersRouter.get("/myclasses", getMyClasses);
+// Update the authenticated user's details
 usersRouter.put("/:id", updateUser);
 
-// Routes that require both user and admin authentication
+// Apply admin authentication middleware for the routes that follow
 usersRouter.use(validateAdmin);
-usersRouter.get("/all", getAllUsers);
+// Delete a user by ID (requires admin authorization)
 usersRouter.delete("/:id", deleteUser);
 
 module.exports = usersRouter;
