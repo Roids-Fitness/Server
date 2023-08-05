@@ -29,7 +29,14 @@ const getAllClasses = async (request, response) => {
 // Fetch a specific class using the class ID provided in the request URL.
 const getClassByID = async (request, response) => {
 	try {
+		if (!request.params || !request.params.id) {
+			return response
+				.status(400)
+				.json({ error: "Class ID parameter is missing" });
+		}
+
 		const foundClass = await Class.findById(request.params.id);
+
 		if (foundClass) {
 			response.json(foundClass);
 		} else {
@@ -44,6 +51,10 @@ const getClassByID = async (request, response) => {
 // Create a new class. The function validates date and time, checks for overlaps, and then adds the new class to the database.
 const createClass = async (request, response) => {
 	try {
+		if (!request.body) {
+			return response.status(400).json({ error: "Request body is missing" });
+		}
+
 		const { title, startTime, endTime, trainer, description } = request.body;
 
 		// Validate necessary fields
@@ -53,15 +64,17 @@ const createClass = async (request, response) => {
 			});
 		}
 
-		// Validate date format
-		const startDate = moment.tz(startTime, "Australia/Brisbane").toDate();
-		const endDate = moment.tz(endTime, "Australia/Brisbane").toDate();
-		if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-			return response.status(400).json({
-				error:
-					"Invalid date format. startTime and endTime must be valid dates. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00",
-			});
-		}
+		// Validate and parse dates
+		const startDate = parseAndValidateDate(
+			startTime,
+			"startTime",
+			"Australia/Brisbane"
+		);
+		const endDate = parseAndValidateDate(
+			endTime,
+			"endTime",
+			"Australia/Brisbane"
+		);
 
 		// Ensure that the class end time is after the start time
 		if (endDate <= startDate) {
@@ -96,48 +109,70 @@ const createClass = async (request, response) => {
 	}
 };
 
-// Update details of an existing class identified by its ID. This function supports partial updates, 
+// Update details of an existing class identified by its ID. This function supports partial updates,
 // so only fields provided in the request body will be updated.
 const updateClassDetails = async (request, response) => {
-    try {
-        const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
+	try {
+		const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
 
-        let startTime, endTime;
+		let startTime, endTime;
 
-        // If startTime is provided, validate and parse it.
-        if (startTimeStr) {
-            startTime = parseAndValidateDate(startTimeStr, "startTime", "Australia/Brisbane");
-        }
+		// If startTime is provided, validate and parse it.
+		if (startTimeStr) {
+			startTime = parseAndValidateDate(
+				startTimeStr,
+				"startTime",
+				"Australia/Brisbane"
+			);
+		}
 
-        // If endTime is provided, validate and parse it.
-        if (endTimeStr) {
-            endTime = parseAndValidateDate(endTimeStr, "endTime", "Australia/Brisbane");
-        }
+		// If endTime is provided, validate and parse it.
+		if (endTimeStr) {
+			endTime = parseAndValidateDate(
+				endTimeStr,
+				"endTime",
+				"Australia/Brisbane"
+			);
+		}
 
-        // Check if endTime is after startTime if both are provided.
-        if (startTime && endTime && endTime <= startTime) {
-            return response.status(400).json({ error: "endTime must be after startTime." });
-        }
+		// Check if endTime is after startTime if both are provided.
+		if (startTime && endTime && endTime <= startTime) {
+			return response
+				.status(400)
+				.json({ error: "endTime must be after startTime." });
+		}
 
-        // Check for class time overlap only if both startTime and endTime are provided.
-        if (startTime && endTime && await checkForTimeOverlap(startTime, endTime)) {
-            return response.status(400).json({ error: "Class time overlaps with an existing class." });
-        }
+		// Check for class time overlap only if both startTime and endTime are provided.
+		if (
+			startTime &&
+			endTime &&
+			(await checkForTimeOverlap(startTime, endTime))
+		) {
+			return response
+				.status(400)
+				.json({ error: "Class time overlaps with an existing class." });
+		}
 
-        let updatedClass = await Class.findByIdAndUpdate(request.params.id, request.body, { new: true });
+		let updatedClass = await Class.findByIdAndUpdate(
+			request.params.id,
+			request.body,
+			{ new: true }
+		);
 
-        if (updatedClass) {
-            response.json({ message: "Class successfully updated!", class: updatedClass });
-        } else {
-            response.status(404).json({ error: "Class ID not found" });
-        }
-    } catch (error) {
-        handleError(error, response);
-    }
+		if (updatedClass) {
+			response.json({
+				message: "Class successfully updated!",
+				class: updatedClass,
+			});
+		} else {
+			response.status(404).json({ error: "Class ID not found" });
+		}
+	} catch (error) {
+		handleError(error, response);
+	}
 };
 
-
-// Allow a user (identified by the JWT) to sign up for a class (identified by its ID). 
+// Allow a user (identified by the JWT) to sign up for a class (identified by its ID).
 // This updates both the user's saved classes list and the class's participant list.
 const classSignup = async (request, response) => {
 	// User ID retrieved from JWT
@@ -148,11 +183,11 @@ const classSignup = async (request, response) => {
 	try {
 		// Update user record to include the class ID in their saved classes
 		await User.findByIdAndUpdate(userId, {
-			$addToSet: { savedClasses: classId },
+			$addToSet: { savedClasses: classId }, // If the user is already signed up for a class, addtoSet will prevent duplication
 		});
 		// Update class record to include the user ID in its participants list
 		await Class.findByIdAndUpdate(classId, {
-			$addToSet: { participantList: userId },
+			$addToSet: { participantList: userId }, // If class already has user in participant list, addtoSet will prevent duplication
 		});
 		response.json({
 			message:
