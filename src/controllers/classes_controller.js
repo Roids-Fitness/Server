@@ -161,21 +161,6 @@ const classSignup = async (request, response) => {
 };
 
 
-const deleteAllClasses = async (request, response) => {
-	try {
-		await Class.deleteMany({});
-		response.json({
-			message: "All classes deleted"
-		});
-	} catch (error) {
-		response.status(500).json({
-			message: "An error occurred while deleting the classes",
-			error: error.message
-		});
-	}
-};
-
-
 const deleteClass = async (request, response) => {
 	try {
 		const classToDelete = await Class.findByIdAndDelete(request.params.id);
