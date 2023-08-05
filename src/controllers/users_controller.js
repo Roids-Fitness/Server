@@ -86,7 +86,8 @@ const login = async (request, response) => {
 
     if (user && bcrypt.compareSync(password, user.password)) {
       const token = createToken(user._id);
-      const returnUser = ({ email, firstName, lastName, savedClasses }) => ({
+      const returnUser = ({ _id, email, firstName, lastName, savedClasses }) => ({
+        id: _id,
         email,
         firstName,
         lastName,
