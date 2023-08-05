@@ -57,7 +57,7 @@ const register = async (request, response) => {
 		const token = createToken(newUser._id);
 
 		// Respond with success message and user details
-		response.json({
+		response.status(201).json({
 			message: "Signup success!",
 			user: {
 				token: token,

@@ -26,7 +26,7 @@ describe("User...", () => {
 
 		it("...with a valid email address and password", async () => {
 			const newUser = {
-				email: "test@test.com",
+				email: "testuser@test.com",
 				password: "testpassword",
 			};
 			const response = await request(app).post("/user/register").send(newUser);
@@ -36,7 +36,7 @@ describe("User...", () => {
 
 		it("...cannot sign up if email address or password are not provided.", async () => {
 			const incompleteUser = {
-				email: "missingpass@test.com",
+				email: "missingpassword@test.com",
 			};
 			const response = await request(app).post("/user/register").send(incompleteUser);
 			expect(response.status).toBe(400);
@@ -45,8 +45,8 @@ describe("User...", () => {
 
 		it("...cannot sign up if the email address already exists in the database", async () => {
 			const existingUser = {
-				email: "test@test.com",
-				password: "securepassword",
+				email: "testuser@test.com",
+				password: "testpassword",
 			};
 			// Assuming first registration was successful in a previous test
 			const response = await request(app).post("/user/register").send(existingUser);
@@ -57,14 +57,14 @@ describe("User...", () => {
 		it("...should be provided with valid user details on successful registration", async () => {
 			const newUserDetails = {
 				firstName: "John",
-				lastName: "Doe",
-				email: "johndoe@test.com",
-				password: "johndoepassword",
-				street: "123 Elm St",
-				suburb: "Downtown",
-				state: "LA",
-				postcode: "90210",
-				mobile: "123-456-7890"
+				lastName: "Smith",
+				email: "johnsmith@test.com",
+				password: "password",
+				street: "123 Fake St",
+				suburb: "Indooroopillu",
+				state: "QLD",
+				postcode: "4389",
+				mobile: "0475869088"
 			};
 			const response = await request(app).post("/user/register").send(newUserDetails);
 			expect(response.status).toBe(201);
