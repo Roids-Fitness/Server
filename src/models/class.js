@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const ClassSchema = mongoose.Schema({
 	title: String,
@@ -6,9 +6,10 @@ const ClassSchema = mongoose.Schema({
 	startTime: Date,
 	endTime: Date,
 	trainer: String,
-	participantList: [{type: mongoose.Types.ObjectId, ref: 'User'}]
-})
+	// List of participants registered for the class. Each participant is referenced by their User ID
+	participantList: [{ type: mongoose.Types.ObjectId, ref: "User" }], 
+});
 
-const Class = mongoose.model('Class', ClassSchema);
+const Class = mongoose.model("Class", ClassSchema);
 
 module.exports = Class;

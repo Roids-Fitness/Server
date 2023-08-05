@@ -1,27 +1,36 @@
-const express = require('express');
+const express = require("express");
 const classesRouter = express.Router();
-const {createClass, getClassByID, updateClassDetails, deleteAllClasses, deleteClass, classSignup, getAllClasses} = require('../controllers/classes_controller');
-const {validateRequest, validateAdmin} = require('../middlewares/auth_middleware');
-
+const {
+	createClass,
+	getClassByID,
+	updateClassDetails,
+	deleteClass,
+	classSignup,
+	getAllClasses,
+} = require("../controllers/classes_controller");
+const {
+	validateRequest,
+	validateAdmin,
+} = require("../middlewares/auth_middleware");
 
 // Public routes (No authentication required)
-classesRouter.get('/', getAllClasses);
-classesRouter.get('/timetable', getAllClasses);
-classesRouter.get('/:id', getClassByID);
+// Retrieve all classes
+classesRouter.get("/", getAllClasses);
+// Retrieve a specific class by ID
+classesRouter.get("/:id", getClassByID);
 
-
-// Routes that require user authentication
+// Apply user authentication middleware for the routes that follow (requires user authentication)
 classesRouter.use(validateRequest);
-classesRouter.put('/update/:id', validateAdmin, updateClassDetails);
-classesRouter.put('/:id', classSignup);
+// Update class details (requires admin authorization)
+classesRouter.put("/update/:id", validateAdmin, updateClassDetails);
+// Signup for a class
+classesRouter.put("/:id", classSignup);
 
-// Routes that require both user and admin authentication
+// Apply admin authentication middleware for the routes that follow (requires admin authorization)
 classesRouter.use(validateAdmin);
-classesRouter.post('/', createClass);
-classesRouter.delete('/deleteall', deleteAllClasses);
-classesRouter.delete('/:id', deleteClass);
+// Create a new class
+classesRouter.post("/", createClass);
+// Delete a specific class by ID
+classesRouter.delete("/:id", deleteClass);
 
 module.exports = classesRouter;
-
-
-

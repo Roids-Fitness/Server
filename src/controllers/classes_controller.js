@@ -1,171 +1,209 @@
-const Class = require('../models/class');
-const User = require('../models/user');
-const moment = require('moment-timezone');
+const Class = require("../models/class");
+const User = require("../models/user");
 
+const {
+	checkForTimeOverlap,
+	handleError,
+	parseAndValidateDate,
+} = require("../services/utilities");
 
+// Retrieve classes. If a trainer name is provided as a query parameter, it filters classes by that trainer.
 const getAllClasses = async (request, response) => {
 	try {
-	  let classes;
+		let classes;
 
-	  // Check if 'trainer' query parameter exists in the request, then search by trainer
-	  if ('trainer' in request.query) {
-		const trainerName = request.query.trainer;
-		classes = await Class.find({ trainer: trainerName });
-	  } else {
-		classes = await Class.find();
-	  }
-  
-	  response.send(classes);
+		// Check if 'trainer' query parameter exists in the request, then search by trainer
+		if ("trainer" in request.query) {
+			const trainerName = request.query.trainer;
+			classes = await Class.find({ trainer: trainerName });
+		} else {
+			classes = await Class.find();
+		}
+
+		response.send(classes);
 	} catch (error) {
-	  console.error('Error while accessing data:', error.message);
-	  response.status(500).json({ error: 'Error while retrieving classes' });
+		handleError(error, response);
 	}
-  };
-  
-
-const getClassByID = async (request, response) => {
-    try {
-        const foundClass = await Class.findById(request.params.id);
-        if (foundClass) {
-            response.json(foundClass);
-        } else {
-			response.status(404);
-            response.json({ error: "Class ID not found" });
-        }
-    } catch (error) {
-        console.log("Error while accessing data:\n" + error);
-        response.status(500).json({error: "Internal Server Error"});
-    }
 };
 
+// Fetch a specific class using the class ID provided in the request URL.
+const getClassByID = async (request, response) => {
+	try {
+		if (!request.params || !request.params.id) {
+			return response
+				.status(400)
+				.json({ error: "Class ID parameter is missing" });
+		}
 
+		const foundClass = await Class.findById(request.params.id);
+
+		if (foundClass) {
+			response.json(foundClass);
+		} else {
+			response.status(404);
+			response.json({ error: "Class ID not found" });
+		}
+	} catch (error) {
+		handleError(error, response);
+	}
+};
+
+// Create a new class. The function validates date and time, checks for overlaps, and then adds the new class to the database.
 const createClass = async (request, response) => {
-    try {
-        const { title, startTime, endTime, trainer, description } = request.body;
-        
-        // Validate necessary fields
-        if (!title || !startTime || !endTime) {
-            return response.status(400).json({ message: 'Missing required fields: title, startTime, endTime.' });
-        }
+	try {
+		if (!request.body) {
+			return response.status(400).json({ error: "Request body is missing" });
+		}
 
-        // Validate date format
-        const startDate = moment.tz(startTime, 'Australia/Brisbane').toDate();
-        const endDate = moment.tz(endTime, 'Australia/Brisbane').toDate();
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            return response.status(400).json({ message: 'Invalid date format. startTime and endTime must be valid dates. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00' });
-        }
+		const { title, startTime, endTime, trainer, description } = request.body;
 
-        // Check if endTime is after startTime
-        if (endDate <= startDate) {
-            return response.status(400).json({ message: 'endTime must be after startTime.' });
-        }
-        
-        // Check for class time overlap
-        const overlapClass = await Class.findOne({
-            $or: [
-                { startTime: { $lte: endDate }, endTime: { $gte: startDate } }
-            ]
-        });
-        if (overlapClass) {
-            return response.status(400).json({ message: 'Class time overlaps with an existing class.' });
-        }
-        
-        let newClass = new Class({
-            title: title,
-            startTime: startDate,
-            endTime: endDate,
-            trainer: trainer,
-            description: description,
-            participantList: []
-        });
-        await newClass.save();
-		response.status(201).json({ message: 'Class successfully created', class: newClass });
-    } catch (error) {
-        console.error(error);
-        response.status(500).json({ message: 'Server Error' });
-    }
-}
+		// Validate necessary fields
+		if (!title || !startTime || !endTime) {
+			return response.status(400).json({
+				error: "Missing required fields: title, startTime, endTime.",
+			});
+		}
 
+		// Validate and parse dates
+		const startDate = parseAndValidateDate(
+			startTime,
+			"startTime",
+			"Australia/Brisbane"
+		);
+		const endDate = parseAndValidateDate(
+			endTime,
+			"endTime",
+			"Australia/Brisbane"
+		);
 
+		// Ensure that the class end time is after the start time
+		if (endDate <= startDate) {
+			return response
+				.status(400)
+				.json({ error: "endTime must be after startTime." });
+		}
+
+		// Ensure there's no overlap with other classes
+		const isOverlap = await checkForTimeOverlap(startDate, endDate);
+		if (isOverlap) {
+			return response
+				.status(400)
+				.json({ error: "Class time overlaps with an existing class." });
+		}
+
+		// Create new class instance and save to database
+		let newClass = new Class({
+			title: title,
+			startTime: startDate,
+			endTime: endDate,
+			trainer: trainer,
+			description: description,
+			participantList: [],
+		});
+		await newClass.save();
+		response
+			.status(201)
+			.json({ message: "Class successfully created", class: newClass });
+	} catch (error) {
+		handleError(error, response);
+	}
+};
+
+// Update details of an existing class identified by its ID. This function supports partial updates,
+// so only fields provided in the request body will be updated.
 const updateClassDetails = async (request, response) => {
-    try {
-        const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
+	try {
+		const { startTime: startTimeStr, endTime: endTimeStr } = request.body;
 
-        let startTime, endTime;
-        if (startTimeStr) {
-            startTime = moment.tz(startTimeStr, 'Australia/Brisbane').toDate();
-            if (isNaN(startTime.getTime())) {
-                return response.status(400).json({ 
-                    message: 'Invalid startTime format. It must be a valid date. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00'
-                });
-            }
-        }
+		let startTime, endTime;
 
-        if (endTimeStr) {
-            endTime = moment.tz(endTimeStr, 'Australia/Brisbane').toDate();
-            if (isNaN(endTime.getTime())) {
-                return response.status(400).json({ 
-                    message: 'Invalid endTime format. It must be a valid date. YYYY-MM-DDTHH:MM:SS. E.g. 2023-08-01T08:30:00'
-                });
-            }
-        }
+		// If startTime is provided, validate and parse it.
+		if (startTimeStr) {
+			startTime = parseAndValidateDate(
+				startTimeStr,
+				"startTime",
+				"Australia/Brisbane"
+			);
+		}
 
-        // Check if endTime is after startTime if both are provided
-        if (startTime && endTime && endTime <= startTime) {
-            return response.status(400).json({ message: 'endTime must be after startTime.' });
-        }
-        
-        // Check for class time overlap only if both startTime and endTime are provided
-        if (startTime && endTime) {
-            const overlapClass = await Class.findOne({
-                $or: [
-                    { startTime: { $lte: endTime }, endTime: { $gte: startTime } }
-                ]
-            });
+		// If endTime is provided, validate and parse it.
+		if (endTimeStr) {
+			endTime = parseAndValidateDate(
+				endTimeStr,
+				"endTime",
+				"Australia/Brisbane"
+			);
+		}
 
-            if (overlapClass) {
-                return response.status(400).json({ message: 'Class time overlaps with an existing class.' });
-            }
-        }
+		// Check if endTime is after startTime if both are provided.
+		if (startTime && endTime && endTime <= startTime) {
+			return response
+				.status(400)
+				.json({ error: "endTime must be after startTime." });
+		}
 
-        let updatedClass = await Class.findByIdAndUpdate(request.params.id, request.body, {new: true});
+		// Check for class time overlap only if both startTime and endTime are provided.
+		if (
+			startTime &&
+			endTime &&
+			(await checkForTimeOverlap(startTime, endTime))
+		) {
+			return response
+				.status(400)
+				.json({ error: "Class time overlaps with an existing class." });
+		}
 
-        if (updatedClass) {
+		let updatedClass = await Class.findByIdAndUpdate(
+			request.params.id,
+			request.body,
+			{ new: true }
+		);
+
+		if (updatedClass) {
 			response.json({
-				message: 'Class successfully updated!',
-				class: updatedClass
+				message: "Class successfully updated!",
+				class: updatedClass,
 			});
 		} else {
-			response.status(404).json({error: "Class ID not found"});
+			response.status(404).json({ error: "Class ID not found" });
 		}
-    } catch(error) {
-        console.log("Error while accessing data:\n" + error);
-        response.status(500).json({error: "Internal Server Error"});
-    }
+	} catch (error) {
+		handleError(error, response);
+	}
 };
 
-
-// Save class ID to user and update class participant list
+// Allow a user (identified by the JWT) to sign up for a class (identified by its ID).
+// This updates both the user's saved classes list and the class's participant list.
 const classSignup = async (request, response) => {
+	// User ID retrieved from JWT
 	let userId = request.user.user_id;
+	// Class ID Retrieved from URL
 	let classId = request.params.id;
 
 	try {
-		await User.findByIdAndUpdate(userId, { $addToSet: { savedClasses: classId } });
-		await Class.findByIdAndUpdate(classId, { $addToSet: { participantList: userId } });
-		response.json({ message: "Class saved to user profile successfully. Class participant list also updated."});
+		// Update user record to include the class ID in their saved classes
+		await User.findByIdAndUpdate(userId, {
+			$addToSet: { savedClasses: classId }, // If the user is already signed up for a class, addtoSet will prevent duplication
+		});
+		// Update class record to include the user ID in its participants list
+		await Class.findByIdAndUpdate(classId, {
+			$addToSet: { participantList: userId }, // If class already has user in participant list, addtoSet will prevent duplication
+		});
+		response.json({
+			message:
+				"Class saved to user profile successfully. Class participant list also updated.",
+		});
 	} catch (error) {
-		console.log("Error while accessing data:\n" + error);
-        response.status(500).json({error: "Failed to save class."});
+		handleError(error, response);
 	}
 };
 
-
+// Delete a class based on its ID and also update all user records to remove this class from their saved lists.
 const deleteClass = async (request, response) => {
 	try {
 		const classToDelete = await Class.findByIdAndDelete(request.params.id);
 
-		// Delete class from any user savedLists
+		// If the class is successfully deleted, remove its ID from any user's saved classes list
 		if (classToDelete) {
 			await User.updateMany(
 				{ savedClasses: classToDelete._id },
@@ -174,17 +212,18 @@ const deleteClass = async (request, response) => {
 
 			response.json("Class deleted");
 		} else {
-			response.status(404).json({error: "Class ID not found"});
+			response.status(404).json({ error: "Class ID not found" });
 		}
 	} catch (error) {
-		console.log("Error while accessing data:\n" + error);
-		response.status(500).json({
-			message: "An error occurred while deleting the class",
-			error: error.message
-		});
+		handleError(error, response);
 	}
 };
 
-
-
-module.exports = {getAllClasses, getClassByID, createClass, updateClassDetails, classSignup, deleteAllClasses, deleteClass};
+module.exports = {
+	getAllClasses,
+	getClassByID,
+	createClass,
+	updateClassDetails,
+	classSignup,
+	deleteClass,
+};

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const UserSchema = mongoose.Schema({
 	firstName: String,
@@ -6,11 +6,11 @@ const UserSchema = mongoose.Schema({
 	email: {
 		type: String,
 		unique: true,
-		required: true
+		required: true,
 	},
 	password: {
 		type: String,
-		required: true
+		required: true,
 	},
 	street: String,
 	suburb: String,
@@ -18,9 +18,10 @@ const UserSchema = mongoose.Schema({
 	postcode: String,
 	mobile: String,
 	isAdmin: Boolean,
-	savedClasses: [{type: mongoose.Types.ObjectId, ref: 'Class'}]
+	// List of classes the user has signed up for. Each class is referenced by its ID
+	savedClasses: [{ type: mongoose.Types.ObjectId, ref: "Class" }],
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model("User", UserSchema);
 
 module.exports = User;

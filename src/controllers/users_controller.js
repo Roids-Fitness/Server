@@ -2,212 +2,211 @@ const User = require("../models/user");
 const Class = require("../models/class");
 const bcrypt = require("bcrypt");
 const { createToken } = require("../services/auth_service");
+const { handleError } = require("../services/utilities");
 
+// Handles the registration process of a new user
 const register = async (request, response) => {
-  try {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      street,
-      suburb,
-      state,
-      postcode,
-      mobile,
-    } = request.body;
+	try {
+		// Destructure user details from the request
+		const {
+			firstName,
+			lastName,
+			email,
+			password,
+			street,
+			suburb,
+			state,
+			postcode,
+			mobile,
+		} = request.body;
 
-    // Check if email and password are provided
-    if (!email || !password) {
-      return response
-        .status(400)
-        .json({ message: "Email and password must be provided" });
-    }
+		// Ensure email and password are provided
+		if (!email || !password) {
+			return response
+				.status(400)
+				.json({ error: "Email and password must be provided" });
+		}
 
-    // Check if the email is already registered
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return response.status(409).json({ message: "Email already registered" });
-    }
+		// Ensure uniqueness of email
+		const existingUser = await User.findOne({ email });
+		if (existingUser) {
+			return response.status(409).json({ error: "Email already registered" });
+		}
 
-    // Hash the password before saving
-    const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+		// Encrypt the password for security
+		const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
 
-    const newUser = new User({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      street,
-      suburb,
-      state,
-      postcode,
-      mobile,
-      isAdmin: false,
-      savedClasses: [],
-    });
+		// Create a new user instance and save it to the database
+		const newUser = new User({
+			firstName,
+			lastName,
+			email,
+			password: hashedPassword,
+			street,
+			suburb,
+			state,
+			postcode,
+			mobile,
+			isAdmin: false,
+			savedClasses: [],
+		});
 
-    await newUser.save();
+		await newUser.save();
 
-    const token = createToken(newUser._id);
+		// Generate JWT token for the new user
+		const token = createToken(newUser._id);
 
-    response.json({
-      message: "Signup success!",
-      user: {
-        token: token,
-        email: newUser.email,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        street: newUser.street,
-        suburb: newUser.suburb,
-        state: newUser.state,
-        postcode: newUser.postcode,
-        mobile: newUser.mobile,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    response.status(500).json({ message: "Signup failed" });
-  }
+		// Respond with success message and user details
+		response.status(201).json({
+			message: "Signup success!",
+			user: {
+				token: token,
+				email: newUser.email,
+				firstName: newUser.firstName,
+				lastName: newUser.lastName,
+				street: newUser.street,
+				suburb: newUser.suburb,
+				state: newUser.state,
+				postcode: newUser.postcode,
+				mobile: newUser.mobile,
+			},
+		});
+	} catch (error) {
+		handleError(error, response);
+	}
 };
 
+// Handles user login and token generation
 const login = async (request, response) => {
-  try {
-    const { email, password } = request.body;
+	try {
+		const { email, password } = request.body;
 
-    // Check if email and password are provided
-    if (!email || !password) {
-      return response
-        .status(400)
-        .json({ error: "Email and password are required to login" });
-    }
+		// Check if email and password are provided
+		if (!email || !password) {
+			return response
+				.status(400)
+				.json({ error: "Email and password are required to login" });
+		}
 
-    const user = await User.findOne({ email });
+		const user = await User.findOne({ email });
 
-    if (user && bcrypt.compareSync(password, user.password)) {
-      const token = createToken(user._id);
-      const returnUser = ({ _id, email, firstName, lastName, savedClasses }) => ({
-        id: _id,
-        email,
-        firstName,
-        lastName,
-      });
-      response.json({
-        message: "Login success!",
-        user: returnUser(user),
-        token: token,
-      });
-    } else {
-      response
-        .status(401)
-        .json({ error: "Authentication failed. Wrong email or password." });
-    }
-  } catch (error) {
-    console.error(error);
-    response.status(500).json({ error: "Login failed" });
-  }
+		if (user && bcrypt.compareSync(password, user.password)) {
+			const token = createToken(user._id);
+			const returnUser = ({
+				_id,
+				email,
+				firstName,
+				lastName,
+				savedClasses,
+			}) => ({
+				id: _id,
+				email,
+				firstName,
+				lastName,
+			});
+			response.json({
+				message: "Login success!",
+				user: returnUser(user),
+				token: token,
+			});
+		} else {
+			response
+				.status(401)
+				.json({ error: "Authentication failed. Wrong email or password." });
+		}
+	} catch (error) {
+		handleError(error, response);
+	}
 };
 
-const getAllUsers = async (request, response) => {
-  try {
-    const users = await User.find();
-    response.send(users);
-  } catch (error) {
-    console.error("Error while accessing data:", error.message);
-    response.status(500).json({ error: "Error while retrieving classes" });
-  }
-};
 
+// Fetches user details based on their ID
 const getUserByID = async (request, response) => {
-  try {
-    // user_id retrieved from user object
-    const foundUser = await User.findById(request.user.user_id).select(
-      "-isAdmin"
-    );
-    if (foundUser) {
-      response.json(foundUser);
-    } else {
-      response.status(404);
-      response.json({ error: "User ID not found" });
-    }
-  } catch (error) {
-    console.error("Error while accessing data:", error.message);
-    response.status(500).json({ error: "Error while retrieving user" });
-  }
+	try {
+		// user_id retrieved from user object
+		const foundUser = await User.findById(request.user.user_id).select(
+			"-isAdmin" // Don't return admin status due to security
+		);
+		if (foundUser) {
+			response.json(foundUser);
+		} else {
+			response.status(404);
+			response.json({ error: "User ID not found" });
+		}
+	} catch (error) {
+		handleError(error, response);
+	}
 };
 
+// Retrieves classes that the user has signed up for
 const getMyClasses = async (request, response) => {
-  try {
-    // user_id retrieved from user object
-    const user = await User.findById(request.user.user_id).populate(
-      "savedClasses"
-    );
-    response.send(user.savedClasses);
-  } catch (error) {
-    console.error("Error while accessing data:", error.message);
-    response
-      .status(500)
-      .json({ error: "Error while retrieving saved classes" });
-  }
+	try {
+		// user_id retrieved from user object
+		const user = await User.findById(request.user.user_id).populate(
+			"savedClasses"
+		);
+		response.send(user.savedClasses);
+	} catch (error) {
+		handleError(error, response);
+	}
 };
 
+// Allows updating a user's details based on their ID
 const updateUser = async (request, response) => {
-  try {
-    // params.id retrieved from search parameter
-    const updatedUser = await User.findByIdAndUpdate(
-      request.params.id,
-      request.body,
-      { new: true }
-    );
+	try {
+		// Remove isAdmin and savedClasses from request.body if they exist
+		// User not allowed to update isAdmin status or savedClasses list 
+		delete request.body.isAdmin;
+		delete request.body.savedClasses;
 
-    if (updatedUser) {
-      response.json({
-        message: "User updated successfully",
-        data: updatedUser,
-      });
-    } else {
-      response.status(404).json({ error: "User ID not found" });
-    }
-  } catch (error) {
-    console.log("Error while accessing data:\n" + error);
-    response.status(500).send({
-      message: "An error occurred while updating the user",
-      error: error.message,
-    });
-  }
+		// params.id retrieved from search parameter
+		const updatedUser = await User.findByIdAndUpdate(
+			request.params.id,
+			request.body,
+			{ new: true }
+		);
+
+		if (updatedUser) {
+			response.json({
+				message: "User updated successfully",
+				data: updatedUser,
+			});
+		} else {
+			response.status(404).json({ error: "User ID not found" });
+		}
+	} catch (error) {
+		console.error("Error while accessing data:\n" + error);
+		handleError(error, response);
+	}
 };
 
+// Deletes a user and also removes their association with any classes they signed up for
 const deleteUser = async (request, response) => {
-  try {
-    // params.id retrieved from search parameter
-    const userToDelete = await User.findByIdAndDelete(request.params.id);
+	try {
+		// params.id retrieved from search parameter
+		const userToDelete = await User.findByIdAndDelete(request.params.id);
 
-    // Delete user from class participant lists
-    if (userToDelete) {
-      await Class.updateMany(
-        { participantList: userToDelete._id },
-        { $pull: { participantList: userToDelete._id } }
-      );
+		// Delete user from class participant lists
+		if (userToDelete) {
+			await Class.updateMany(
+				{ participantList: userToDelete._id },
+				{ $pull: { participantList: userToDelete._id } }
+			);
 
-      response.json("User deleted");
-    } else {
-      response.status(404).json({ error: "User ID not found" });
-    }
-  } catch (error) {
-    console.log("Error while accessing data:\n" + error);
-    response.status(500).send({
-      message: "An error occurred while deleting the user",
-      error: error.message,
-    });
-  }
+			response.json("User deleted");
+		} else {
+			response.status(404).json({ error: "User ID not found" });
+		}
+	} catch (error) {
+		handleError(error, response);
+	}
 };
 
 module.exports = {
-  getAllUsers,
-  register,
-  login,
-  updateUser,
-  deleteUser,
-  getUserByID,
-  getMyClasses,
+	register,
+	login,
+	updateUser,
+	deleteUser,
+	getUserByID,
+	getMyClasses,
 };
