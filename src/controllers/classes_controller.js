@@ -1,6 +1,6 @@
 const Class = require("../models/class");
 const User = require("../models/user");
-const moment = require("moment-timezone");
+
 const {
 	checkForTimeOverlap,
 	handleError,

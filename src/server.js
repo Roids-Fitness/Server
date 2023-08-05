@@ -90,5 +90,5 @@ app.use("/user", usersRouter);
 
 module.exports = {
 	app,
-	PORT,
+	PORT
 };

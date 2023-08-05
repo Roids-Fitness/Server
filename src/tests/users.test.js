@@ -3,6 +3,7 @@ const { app } = require("../server");
 const mongoose = require('mongoose');
 
 
+
 describe("User...", () => {
 
 	describe("...can register for an account...", () => {
@@ -125,7 +126,7 @@ describe("User...", () => {
 	
 			// Use the token to make a request to getUserByID endpoint
 			const response = await request(app)
-				.get("/user/myaccount")  // replace this with your actual endpoint for getUserByID
+				.get("/user/myaccount")  
 				.set("Authorization", `Bearer ${token}`);  // set the JWT as an Authorization header
 	
 			expect(response.status).toBe(200);
@@ -157,7 +158,7 @@ describe("User...", () => {
 	
 			// Use the token to make a request to getUserByID endpoint
 			const response = await request(app)
-			.get("/user/myclasses")  // replace this with your actual endpoint for getUserByID
+			.get("/user/myclasses")  
 			.set("Authorization", `Bearer ${token}`);  // set the JWT as an Authorization header
 
 			expect(response.status).toBe(200);
