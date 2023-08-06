@@ -10,7 +10,8 @@ const PORT = process.env.PORT;
 // Configure Cross-Origin Resource Sharing (CORS) settings
 const cors = require("cors");
 let corsOptions = {
-	origin: ["http://localhost:3000", "https://roids-fitness.netlify.app", "https://roids-fitness.vercel.app", "https://roids-fitness-main.netlify.app"],
+	// Only requests from the below origins will be accepted by the backend - for security reasons
+	origin: ["http://localhost:3000", "https://roids-fitness.netlify.app", "https://roids-fitness.vercel.app"],
 	optionSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
